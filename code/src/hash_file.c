@@ -15,12 +15,10 @@
   }                         \
 }
 
-BF_Block *open_files[MAX_OPEN_FILES];
+int open_files[MAX_OPEN_FILES];
 
 HT_ErrorCode HT_Init() {
   //insert code here
-  // Initialising BF level
-  CALL_BF(BF_Init(LRU));
   return HT_OK;
 }
 
