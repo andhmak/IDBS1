@@ -61,7 +61,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
       open_files[i] = fd;
     }
   }
-  if (i == 21) {
+  if (i == MAX_OPEN_FILES) {
     return HT_ERROR;
   }
   *indexDesc = i;
