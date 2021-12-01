@@ -22,6 +22,12 @@ int hash_func(int x) {
     return x;
 }
 
+typedef struct IndexBlock {
+	int globalDepth;
+  int next_block;
+  int index[(BF_BLOCK_SIZE-2*sizeof(int))/sizeof(int)];
+} IndexBlock;
+
 int open_files[MAX_OPEN_FILES];
 
 HT_ErrorCode HT_Init() {
