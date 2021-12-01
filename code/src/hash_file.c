@@ -24,9 +24,15 @@ int hash_func(int x) {
 
 typedef struct IndexBlock {
 	int globalDepth;
-  int next_block;
+  int nextBlock;
   int index[(BF_BLOCK_SIZE-2*sizeof(int))/sizeof(int)];
 } IndexBlock;
+
+typedef struct DataBlock {
+	int localDepth;
+  int lastEmpty;
+  Record index[(BF_BLOCK_SIZE-2*sizeof(int))/sizeof(Record)];
+} DataBlock;
 
 int open_files[MAX_OPEN_FILES];
 
