@@ -15,6 +15,10 @@
   }                         \
 }
 
+int hash_func(Record record, int depth) {
+  record.id >> sizeof(int) - depth;
+}
+
 int open_files[MAX_OPEN_FILES];
 
 HT_ErrorCode HT_Init() {
