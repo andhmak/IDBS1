@@ -15,8 +15,11 @@
   }                         \
 }
 
-int hash_func(Record record, int depth) {
-  return record.id >> (sizeof(int) - depth);
+int hash_func(int x) {
+    x = ((x >> (sizeof(int)/2)) ^ x) * 0x45d9f3b;
+    x = ((x >> (sizeof(int)/2)) ^ x) * 0x45d9f3b;
+    x = (x >> (sizeof(int)/2)) ^ x;
+    return x;
 }
 
 int open_files[MAX_OPEN_FILES];
