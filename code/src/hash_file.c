@@ -31,7 +31,8 @@ typedef struct IndexBlock {
 typedef struct DataBlock {
   int localDepth;
   int lastEmpty;
-  Record index[(BF_BLOCK_SIZE-2*sizeof(int))/sizeof(Record)];
+  int nextBlock;
+  Record index[(BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record)];
 } DataBlock;
 
 int open_files[MAX_OPEN_FILES];
