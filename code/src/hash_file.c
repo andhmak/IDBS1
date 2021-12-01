@@ -23,13 +23,13 @@ int hash_func(int x) {
 }
 
 typedef struct IndexBlock {
-	int globalDepth;
+  int globalDepth;
   int nextBlock;
   int index[(BF_BLOCK_SIZE-2*sizeof(int))/sizeof(int)];
 } IndexBlock;
 
 typedef struct DataBlock {
-	int localDepth;
+  int localDepth;
   int lastEmpty;
   Record index[(BF_BLOCK_SIZE-2*sizeof(int))/sizeof(Record)];
 } DataBlock;
