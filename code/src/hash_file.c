@@ -70,6 +70,8 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
 
 HT_ErrorCode HT_CloseFile(int indexDesc) {
   //insert code here
+  CALL_BF(BF_CloseFile(open_files[indexDesc]));
+  open_files[indexDesc] = -1;
   return HT_OK;
 }
 
