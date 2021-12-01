@@ -39,16 +39,29 @@ int open_files[MAX_OPEN_FILES];
 
 HT_ErrorCode HT_Init() {
   //insert code here
+  for (int i = 0 ; i < MAX_OPEN_FILES ; i++) {
+    open_files[i] = -1;
+  }
   return HT_OK;
 }
 
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   //insert code here
+  CALL_BF(BF_CreateFile(filename));
   return HT_OK;
 }
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   //insert code here
+  int fd;
+  CALL_BF(BF_OpenFile(fileName, &fd));
+  int i;
+  for (i = 0 ; i < MAX_OPEN_FILES ; i++) {
+    if(open_files[i] == -1) {
+      open_files[i] = fd;
+    }
+  }
+  *indexDesc = i;
   return HT_OK;
 }
 
