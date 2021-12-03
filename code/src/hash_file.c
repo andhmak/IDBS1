@@ -134,7 +134,9 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       count++;
     }
     else{
-      BF_GetBlock(i) index->index[hashID-(count*INDEX_ARRAY_SIZE)];
+      BF_Block *tempBlock;
+      CALL_BF(BF_GetBlock(open_files[indexDesc],index->index[hashID-(count*INDEX_ARRAY_SIZE)],tempBlock));
+      targetBin = (DataBlock *)BF_Block_GetData(tempBlock);
     }
   }
     
