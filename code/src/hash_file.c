@@ -123,7 +123,22 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
 }
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
-  //insert code here
+  printf("Inserting {%i,%s,%s,%s}", record.id, record.name, record.surname, record.city);
+  IndexBlock *index = open_files[indexDesc];
+  int hashID = (hash_func(record.id)%(2^index->globalDepth));
+  int count=1;
+  DataBlock *targetBin;
+  while (index->nextBlock){
+    if(count*INDEX_ARRAY_SIZE<hashID){
+      index = index->nextBlock;
+      count++;
+    }
+    else{
+      BF_GetBlock(i) index->index[hashID-(count*INDEX_ARRAY_SIZE)];
+    }
+  }
+    
+
   return HT_OK;
 }
 
