@@ -62,8 +62,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   BF_Block* block[indexBlockAmount];
   for (int i = 0; i < indexBlockAmount; i++){
     CALL_BF(BF_AllocateBlock(fileDesc, block[i]));
-    IndexBlock* data;
-    data = (IndexBlock*) BF_Block_GetData(block[i]);
+    IndexBlock* data = (IndexBlock*) BF_Block_GetData(block[i]);
     data->globalDepth = depth;
     if (i+1 < indexBlockAmount){
       data->nextBlock = i+1;
@@ -83,8 +82,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   int dataBlockCounter = indexBlockAmount;
   for (int i = 0; i < indexBlockAmount; i++){
-    IndexBlock* data;
-    data = (IndexBlock*) BF_Block_GetData(block[i]);
+    IndexBlock* data = (IndexBlock*) BF_Block_GetData(block[i]);
     for (int j = 0; i < INDEX_ARRAY_SIZE; j++){
       if (dataBlockCounter < indexBlockAmount + arraySize - 1) data->index[j] = dataBlockCounter;
       else data->index[j] = -1;
