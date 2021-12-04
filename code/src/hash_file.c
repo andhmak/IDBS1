@@ -59,10 +59,10 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   }
 
   int indexBlockAmount = (arraySize - 1) / INDEX_ARRAY_SIZE + 1;
-  BF_Block* block[indexBlockAmount];
+  BF_Block* block;
   for (int i = 0; i < indexBlockAmount; i++){
-    CALL_BF(BF_AllocateBlock(fileDesc, block[i]));
-    IndexBlock* data = (IndexBlock*) BF_Block_GetData(block[i]);
+    CALL_BF(BF_AllocateBlock(fileDesc, block));
+    IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     data->globalDepth = depth;
     if (i+1 < indexBlockAmount) {
       data->nextBlock = i+1;
@@ -70,8 +70,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     else {
       data->nextBlock = -1;
     }
-    BF_Block_SetDirty(block[i]);
-    CALL_BF(BF_UnpinBlock(block[i]));
+    BF_Block_SetDirty(block);
+    CALL_BF(BF_UnpinBlock(block));
   }
 
   for (int i; i < arraySize; i++) {
@@ -87,15 +87,16 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   int dataBlockCounter = indexBlockAmount;
   for (int i = 0; i < indexBlockAmount; i++){
-    IndexBlock* data = (IndexBlock*) BF_Block_GetData(block[i]);
+    CALL_OR_DIE(BF_GetBlock(fileDesc, i, block));
+    IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     for (int j = 0; i < INDEX_ARRAY_SIZE; j++){
       if (dataBlockCounter < indexBlockAmount + arraySize - 1) data->index[j] = dataBlockCounter;
       else data->index[j] = -1;
       dataBlockCounter++;      
     }
 
-    BF_Block_SetDirty(block[i]); 
-    CALL_BF(BF_UnpinBlock(block[i]));   
+    BF_Block_SetDirty(block); 
+    CALL_BF(BF_UnpinBlock(block));   
   }
 
   return HT_OK;
