@@ -116,6 +116,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   for (i = 0 ; i < MAX_OPEN_FILES ; i++) {
     if(open_files[i].fileDesc == -1) {
       open_files[i].fileDesc = fd;
+      break;
     }
   }
   if (i == MAX_OPEN_FILES) {
