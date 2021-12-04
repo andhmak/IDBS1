@@ -105,6 +105,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_UnpinBlock(block));
   }
 
+  CALL_BF(BF_CloseFile(fileDesc));
   return HT_OK;
 }
 
