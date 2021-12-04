@@ -136,10 +136,12 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
       if(targetData->nextBlock==-1){
         if (targetData->lastEmpty<DATA_ARRAY_SIZE){
+          //insert
           targetData->index[targetData->lastEmpty] = record;
           targetData->lastEmpty++;
           BF_Block_SetDirty(targetBlock);
           CALL_BF(BF_UnpinBlock(targetBlock));
+          return HT_OK;
         }
         else{
 
@@ -150,8 +152,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       }
     }
   }
-    
-
   return HT_OK;
 }
 
