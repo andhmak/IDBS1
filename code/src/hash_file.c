@@ -166,13 +166,16 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           return HT_OK;
         }
         else if(sameHash(entryArray)){
-          //make next block          
+          //make next block
+        }
+        else if(targetData->localDepth==32){    //reached MAX depth
+          //make next block
         }
         else{
           //split
         }
       }
-      else{ //has overflow
+      else{                           //has overflow
 
         //making an array with all the entries of this bin
         Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));  //1 for the new entry and all the entries of the block
@@ -193,11 +196,37 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         }
         //the last block is still pined
 
-        if (targetData->lastEmpty<DATA_ARRAY_SIZE){
-          
+        if (targetData->lastEmpty<DATA_ARRAY_SIZE){ //last block has space
+          if(sameHash(entryArray)){
+            //insert
+            targetData->index[targetData->lastEmpty] = record;
+            targetData->lastEmpty++;
+            BF_Block_SetDirty(targetBlock);
+            CALL_BF(BF_UnpinBlock(targetBlock));
+            return HT_OK;
+          }
+          else if(targetData->localDepth==32){    //reached MAX depth
+            //insert
+            targetData->index[targetData->lastEmpty] = record;
+            targetData->lastEmpty++;
+            BF_Block_SetDirty(targetBlock);
+            CALL_BF(BF_UnpinBlock(targetBlock));
+            return HT_OK;
+          }
+          else{
+            //split
+          }
         }
-        else{
-          
+        else{                                       //last block is full
+          if(sameHash(entryArray)){
+            //new block
+          }
+          else if(targetData->localDepth==32){    //reached MAX depth
+            //new block
+          }
+          else{
+            //split
+          }
         }
       }
     }
