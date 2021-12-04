@@ -134,7 +134,7 @@ int sameHash(Record *records){
 }
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
-  printf("Inserting {%i,%s,%s,%s}", record.id, record.name, record.surname, record.city);
+  printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   IndexBlock *index = open_files[indexDesc];
   int hashID = (hash_func(record.id)%(2^index->globalDepth));
   int count=1;
@@ -235,7 +235,43 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 }
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
-  //insert code here
+  if (id==NULL){
+    /* code */
+  }
+  else{
+
+    printf("Printing entries with ID: %i\n", *id);
+    IndexBlock *index = open_files[indexDesc];
+    int hashID = (hash_func(id)%(2^index->globalDepth));
+    int count=1;
+    while (index->nextBlock){
+      if(count*INDEX_ARRAY_SIZE<hashID){
+        index = index->nextBlock;
+        count++;
+      }
+      else{
+        BF_Block *targetBlock;
+        CALL_BF(BF_GetBlock(open_files[indexDesc],index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
+        DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+
+        for (int i = 0; i < targetData->lastEmpty; i++){
+          if (*id==targetData->index[i].id){
+            printf("{%i,%s,%s,%s}\n", targetData->index[i].id, targetData->index[i].name, targetData->index[i].surname, targetData->index[i].city);
+          }
+        }
+        while(targetData->nextBlock!=-1){
+          CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
+          CALL_BF(BF_GetBlock(open_files[indexDesc],targetData->nextBlock,targetBlock));
+          targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+          for (int i = 0; i < targetData->lastEmpty; i++){
+            if (*id==targetData->index[i].id){
+              printf("{%i,%s,%s,%s}\n", targetData->index[i].id, targetData->index[i].name, targetData->index[i].surname, targetData->index[i].city);
+            }
+          }
+        }
+        CALL_BF(BF_UnpinBlock(targetBlock));
+      }
+  }
   return HT_OK;
 }
 
