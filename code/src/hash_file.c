@@ -125,16 +125,29 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   IndexBlock *index = open_files[indexDesc];
   int hashID = (hash_func(record.id)%(2^index->globalDepth));
   int count=1;
-  DataBlock *targetBin;
   while (index->nextBlock){
     if(count*INDEX_ARRAY_SIZE<hashID){
       index = index->nextBlock;
       count++;
     }
     else{
-      BF_Block *tempBlock;
-      CALL_BF(BF_GetBlock(open_files[indexDesc],index->index[hashID-(count*INDEX_ARRAY_SIZE)],tempBlock));
-      targetBin = (DataBlock *)BF_Block_GetData(tempBlock);
+      BF_Block *targetBlock;
+      CALL_BF(BF_GetBlock(open_files[indexDesc],index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
+      DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+      if(targetData->nextBlock==-1){
+        if (targetData->lastEmpty<DATA_ARRAY_SIZE){
+          targetData->index[targetData->lastEmpty] = record;
+          targetData->lastEmpty++;
+          BF_Block_SetDirty(targetBlock);
+          CALL_BF(BF_UnpinBlock(targetBlock));
+        }
+        else{
+
+        }
+      }
+      else{
+
+      }
     }
   }
     
