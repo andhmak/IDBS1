@@ -7,6 +7,7 @@
 #define MAX_OPEN_FILES 20
 
 #define INDEX_ARRAY_SIZE (BF_BLOCK_SIZE-2*sizeof(int))/sizeof(int)
+#define DATA_ARRAY_SIZE (BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record)
 
 #define CALL_BF(call)       \
 {                           \
@@ -34,7 +35,7 @@ typedef struct DataBlock {
   int localDepth;
   int lastEmpty;
   int nextBlock;
-  Record index[(BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record)];
+  Record index[DATA_ARRAY_SIZE];
 } DataBlock;
 
 int open_files[MAX_OPEN_FILES];
