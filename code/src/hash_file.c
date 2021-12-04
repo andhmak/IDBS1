@@ -38,12 +38,18 @@ typedef struct DataBlock {
   Record index[DATA_ARRAY_SIZE];
 } DataBlock;
 
-int open_files[MAX_OPEN_FILES];
+typedef struct OpenFileData {
+  int fileDesc;
+  int globalDepth;
+  int *index;
+} OpenFileData;
+
+OpenFileData open_files[MAX_OPEN_FILES];
 
 HT_ErrorCode HT_Init() {
   //insert code here
   for (int i = 0 ; i < MAX_OPEN_FILES ; i++) {
-    open_files[i] = -1;
+    open_files[i].fileDesc = -1;
   }
   return HT_OK;
 }
@@ -108,8 +114,8 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   CALL_BF(BF_OpenFile(fileName, &fd));
   int i;
   for (i = 0 ; i < MAX_OPEN_FILES ; i++) {
-    if(open_files[i] == -1) {
-      open_files[i] = fd;
+    if(open_files[i].fileDesc == -1) {
+      open_files[i].fileDesc = fd;
     }
   }
   if (i == MAX_OPEN_FILES) {
