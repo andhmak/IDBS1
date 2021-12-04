@@ -134,6 +134,24 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       BF_Block *targetBlock;
       CALL_BF(BF_GetBlock(open_files[indexDesc],index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
       DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+      
+      Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));
+      entryArray[0] = record;
+      for (int i = 0; i < targetData->lastEmpty; i++){
+        entryArray[i+1]=targetData->index[i];
+      }
+      int blockCount=1;
+      while(targetData->nextBlock!=-1){
+        CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
+        CALL_BF(BF_GetBlock(open_files[indexDesc],targetData->nextBlock,targetBlock));
+        targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+        entryArray=realloc(entryArray,(1+((blockCount-1)*DATA_ARRAY_SIZE)+targetData->lastEmpty)*sizeof(Record));
+        for (int i = 0; i < targetData->lastEmpty; i++){
+          entryArray[i+1+((blockCount-1)*DATA_ARRAY_SIZE)]=targetData->index[i];
+        }
+        blockCount++;
+      }
+
       if(targetData->nextBlock==-1){
         if (targetData->lastEmpty<DATA_ARRAY_SIZE){
           //insert
