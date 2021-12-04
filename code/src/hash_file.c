@@ -152,6 +152,9 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
 
 HT_ErrorCode HT_CloseFile(int indexDesc) {
   //insert code here
+  if ((indexDesc < 0) || (indexDesc >= MAX_OPEN_FILES) || (open_files[indexDesc].fileDesc == -1)) {
+    return HT_ERROR;
+  }
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
   open_files[indexDesc].fileDesc = -1;
   return HT_OK;
