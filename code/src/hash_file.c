@@ -70,6 +70,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     else {
       data->nextBlock = -1;
     }
+    BF_Block_SetDirty(block[i]);
+    CALL_BF(BF_UnpinBlock(block[i]));
   }
 
   for (int i; i < arraySize; i++) {
