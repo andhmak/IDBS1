@@ -64,8 +64,11 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_AllocateBlock(fileDesc, block[i]));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block[i]);
     data->globalDepth = depth;
-    if (i+1 < indexBlockAmount){
+    if (i+1 < indexBlockAmount) {
       data->nextBlock = i+1;
+    }
+    else {
+      data->nextBlock = -1;
     }
   }
 
