@@ -120,6 +120,19 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   return HT_OK;
 }
 
+//compares the hash value of first entry to all others
+//if all are the same returns true
+//else false
+int sameHash(Record *records){
+  int hash=hash_func(records[0].id);
+  for (int i=1;i<(sizeof(records)/sizeof(Record)); i++){
+    if (hash != hash_func(records[i].id)){
+      return 0;
+    }
+  }
+  return 1;
+}
+
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   printf("Inserting {%i,%s,%s,%s}", record.id, record.name, record.surname, record.city);
   IndexBlock *index = open_files[indexDesc];
@@ -134,25 +147,16 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       BF_Block *targetBlock;
       CALL_BF(BF_GetBlock(open_files[indexDesc],index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
       DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
-      
-      Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));
-      entryArray[0] = record;
-      for (int i = 0; i < targetData->lastEmpty; i++){
-        entryArray[i+1]=targetData->index[i];
-      }
-      int blockCount=1;
-      while(targetData->nextBlock!=-1){
-        CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
-        CALL_BF(BF_GetBlock(open_files[indexDesc],targetData->nextBlock,targetBlock));
-        targetData = (DataBlock *)BF_Block_GetData(targetBlock);
-        entryArray=realloc(entryArray,(1+((blockCount-1)*DATA_ARRAY_SIZE)+targetData->lastEmpty)*sizeof(Record));
-        for (int i = 0; i < targetData->lastEmpty; i++){
-          entryArray[i+1+((blockCount-1)*DATA_ARRAY_SIZE)]=targetData->index[i];
-        }
-        blockCount++;
-      }
 
-      if(targetData->nextBlock==-1){
+      if(targetData->nextBlock==-1){  //only one block
+
+        //making an array with all the entries of this block
+        Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));  //1 for the new entry and all the entries of the block
+        entryArray[0] = record;
+        for (int i = 0; i < targetData->lastEmpty; i++){
+          entryArray[i+1]=targetData->index[i];
+        }
+
         if (targetData->lastEmpty<DATA_ARRAY_SIZE){
           //insert
           targetData->index[targetData->lastEmpty] = record;
@@ -161,12 +165,40 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           CALL_BF(BF_UnpinBlock(targetBlock));
           return HT_OK;
         }
+        else if(sameHash(entryArray)){
+          //make next block          
+        }
         else{
-
+          //split
         }
       }
-      else{
+      else{ //has overflow
 
+        //making an array with all the entries of this bin
+        Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));  //1 for the new entry and all the entries of the block
+        entryArray[0] = record;
+        for (int i = 0; i < targetData->lastEmpty; i++){
+          entryArray[i+1]=targetData->index[i];
+        }
+        int blockCount=1;
+        while(targetData->nextBlock!=-1){
+          CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
+          CALL_BF(BF_GetBlock(open_files[indexDesc],targetData->nextBlock,targetBlock));
+          targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+          entryArray=realloc(entryArray,(1+(blockCount*DATA_ARRAY_SIZE)+targetData->lastEmpty)*sizeof(Record)); //all previous block are full, they have blockCount*DATA_ARRAY_SIZE entries
+          for (int i = 0; i < targetData->lastEmpty; i++){
+            entryArray[i+1+(blockCount*DATA_ARRAY_SIZE)]=targetData->index[i];
+          }
+          blockCount++;
+        }
+        //the last block is still pined
+
+        if (targetData->lastEmpty<DATA_ARRAY_SIZE){
+          
+        }
+        else{
+          
+        }
       }
     }
   }
