@@ -139,7 +139,7 @@ int sameHash(Record *records){
 }
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
-  printf("Inserting {%i,%s,%s,%s}", record.id, record.name, record.surname, record.city);
+  printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   IndexBlock *index = open_files[indexDesc];
   int hashID = (hash_func(record.id)%(2^index->globalDepth));
   int count=1;
@@ -171,13 +171,16 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           return HT_OK;
         }
         else if(sameHash(entryArray)){
-          //make next block          
+          //make next block
+        }
+        else if(targetData->localDepth==32){    //reached MAX depth
+          //make next block
         }
         else{
           //split
         }
       }
-      else{ //has overflow
+      else{                           //has overflow
 
         //making an array with all the entries of this bin
         Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));  //1 for the new entry and all the entries of the block
@@ -198,11 +201,37 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         }
         //the last block is still pined
 
-        if (targetData->lastEmpty<DATA_ARRAY_SIZE){
-          
+        if (targetData->lastEmpty<DATA_ARRAY_SIZE){ //last block has space
+          if(sameHash(entryArray)){
+            //insert
+            targetData->index[targetData->lastEmpty] = record;
+            targetData->lastEmpty++;
+            BF_Block_SetDirty(targetBlock);
+            CALL_BF(BF_UnpinBlock(targetBlock));
+            return HT_OK;
+          }
+          else if(targetData->localDepth==32){    //reached MAX depth
+            //insert
+            targetData->index[targetData->lastEmpty] = record;
+            targetData->lastEmpty++;
+            BF_Block_SetDirty(targetBlock);
+            CALL_BF(BF_UnpinBlock(targetBlock));
+            return HT_OK;
+          }
+          else{
+            //split
+          }
         }
-        else{
-          
+        else{                                       //last block is full
+          if(sameHash(entryArray)){
+            //new block
+          }
+          else if(targetData->localDepth==32){    //reached MAX depth
+            //new block
+          }
+          else{
+            //split
+          }
         }
       }
     }
@@ -211,7 +240,43 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 }
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
-  //insert code here
+  if (id==NULL){
+    /* code */
+  }
+  else{
+
+    printf("Printing entries with ID: %i\n", *id);
+    IndexBlock *index = open_files[indexDesc];
+    int hashID = (hash_func(id)%(2^index->globalDepth));
+    int count=1;
+    while (index->nextBlock){
+      if(count*INDEX_ARRAY_SIZE<hashID){
+        index = index->nextBlock;
+        count++;
+      }
+      else{
+        BF_Block *targetBlock;
+        CALL_BF(BF_GetBlock(open_files[indexDesc],index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
+        DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+
+        for (int i = 0; i < targetData->lastEmpty; i++){
+          if (*id==targetData->index[i].id){
+            printf("{%i,%s,%s,%s}\n", targetData->index[i].id, targetData->index[i].name, targetData->index[i].surname, targetData->index[i].city);
+          }
+        }
+        while(targetData->nextBlock!=-1){
+          CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
+          CALL_BF(BF_GetBlock(open_files[indexDesc],targetData->nextBlock,targetBlock));
+          targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+          for (int i = 0; i < targetData->lastEmpty; i++){
+            if (*id==targetData->index[i].id){
+              printf("{%i,%s,%s,%s}\n", targetData->index[i].id, targetData->index[i].name, targetData->index[i].surname, targetData->index[i].city);
+            }
+          }
+        }
+        CALL_BF(BF_UnpinBlock(targetBlock));
+      }
+  }
   return HT_OK;
 }
 
