@@ -58,7 +58,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     arraySize *= 2;
   }
 
-  int indexBlockAmount = arraySize / INDEX_ARRAY_SIZE + 1;
+  int indexBlockAmount = (arraySize + 1) / INDEX_ARRAY_SIZE + 1;
   BF_Block* block[indexBlockAmount];
   for (int i = 0; i < indexBlockAmount; i++){
     CALL_BF(BF_AllocateBlock(fileDesc, block[i]));
