@@ -190,6 +190,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       count++;
     }
     else{
+      //note to self:PLEASE CHECK WHERE YOU NEED TO UNPIN YOUR INDEX BLOCK
       BF_Block *targetBlock;
       CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
       DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
@@ -223,7 +224,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           newBlockData->index[0] = record;
           newBlockData->lastEmpty = 1;
           newBlockData->nextBlock = -1;
-          
+
           BF_Block_SetDirty(targetBlock);
           BF_Block_SetDirty(newBlock);
           CALL_BF(BF_UnpinBlock(targetBlock));
@@ -232,6 +233,22 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         }
         else if(targetData->localDepth==32){    //reached MAX depth
           //make next block
+          BF_Block *newBlock;
+          DataBlock *newBlockData;
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
+          newBlockData->localDepth = targetData->localDepth;
+          newBlockData->index[0] = record;
+          newBlockData->lastEmpty = 1;
+          newBlockData->nextBlock = -1;
+
+          BF_Block_SetDirty(targetBlock);
+          BF_Block_SetDirty(newBlock);
+          CALL_BF(BF_UnpinBlock(targetBlock));
+          CALL_BF(BF_UnpinBlock(newBlock));
+          return HT_OK;
         }
         else{
           //split
@@ -282,9 +299,41 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         else{                                       //last block is full
           if(sameHash(entryArray)){
             //new block
+            BF_Block *newBlock;
+            DataBlock *newBlockData;
+            CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+            newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+            CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
+            newBlockData->localDepth = targetData->localDepth;
+            newBlockData->index[0] = record;
+            newBlockData->lastEmpty = 1;
+            newBlockData->nextBlock = -1;
+
+            BF_Block_SetDirty(targetBlock);
+            BF_Block_SetDirty(newBlock);
+            CALL_BF(BF_UnpinBlock(targetBlock));
+            CALL_BF(BF_UnpinBlock(newBlock));
+            return HT_OK;
           }
           else if(targetData->localDepth==32){    //reached MAX depth
             //new block
+            BF_Block *newBlock;
+            DataBlock *newBlockData;
+            CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+            newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+            CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
+            newBlockData->localDepth = targetData->localDepth;
+            newBlockData->index[0] = record;
+            newBlockData->lastEmpty = 1;
+            newBlockData->nextBlock = -1;
+
+            BF_Block_SetDirty(targetBlock);
+            BF_Block_SetDirty(newBlock);
+            CALL_BF(BF_UnpinBlock(targetBlock));
+            CALL_BF(BF_UnpinBlock(newBlock));
+            return HT_OK;
           }
           else{
             //split
