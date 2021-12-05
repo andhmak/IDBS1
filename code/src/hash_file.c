@@ -176,7 +176,10 @@ int sameHash(Record *records){
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
-  IndexBlock *index = open_files[indexDesc];
+  IndexBlock *index;
+  BF_Block *indexBlock;
+  CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index,indexBlock));
+  index = (IndexBlock *)BF_Block_GetData(indexBlock);
   int hashID = (hash_func(record.id)%(2^index->globalDepth));
   int count=1;
   while (index->nextBlock){
@@ -186,7 +189,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     }
     else{
       BF_Block *targetBlock;
-      CALL_BF(BF_GetBlock(open_files[indexDesc],index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
+      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
       DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
       if(targetData->nextBlock==-1){  //only one block
@@ -227,7 +230,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         int blockCount=1;
         while(targetData->nextBlock!=-1){
           CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
-          CALL_BF(BF_GetBlock(open_files[indexDesc],targetData->nextBlock,targetBlock));
+          CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,targetData->nextBlock,targetBlock));
           targetData = (DataBlock *)BF_Block_GetData(targetBlock);
           entryArray=realloc(entryArray,(1+(blockCount*DATA_ARRAY_SIZE)+targetData->lastEmpty)*sizeof(Record)); //all previous block are full, they have blockCount*DATA_ARRAY_SIZE entries
           for (int i = 0; i < targetData->lastEmpty; i++){
@@ -282,7 +285,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   else{
 
     printf("Printing entries with ID: %i\n", *id);
-    IndexBlock *index = open_files[indexDesc];
+    IndexBlock *index = open_files[indexDesc].index;
     int hashID = (hash_func(id)%(2^index->globalDepth));
     int count=1;
     while (index->nextBlock){
@@ -292,7 +295,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
       }
       else{
         BF_Block *targetBlock;
-        CALL_BF(BF_GetBlock(open_files[indexDesc],index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
+        CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
         DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
         for (int i = 0; i < targetData->lastEmpty; i++){
@@ -302,7 +305,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
         }
         while(targetData->nextBlock!=-1){
           CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
-          CALL_BF(BF_GetBlock(open_files[indexDesc],targetData->nextBlock,targetBlock));
+          CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,targetData->nextBlock,targetBlock));
           targetData = (DataBlock *)BF_Block_GetData(targetBlock);
           for (int i = 0; i < targetData->lastEmpty; i++){
             if (*id==targetData->index[i].id){
@@ -312,6 +315,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
         }
         CALL_BF(BF_UnpinBlock(targetBlock));
       }
+    }
   }
   return HT_OK;
 }
