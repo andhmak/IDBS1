@@ -213,6 +213,22 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         }
         else if(sameHash(entryArray)){
           //make next block
+          BF_Block *newBlock;
+          DataBlock *newBlockData;
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
+          newBlockData->localDepth = targetData->localDepth;
+          newBlockData->index[0] = record;
+          newBlockData->lastEmpty = 1;
+          newBlockData->nextBlock = -1;
+          
+          BF_Block_SetDirty(targetBlock);
+          BF_Block_SetDirty(newBlock);
+          CALL_BF(BF_UnpinBlock(targetBlock));
+          CALL_BF(BF_UnpinBlock(newBlock));
+          return HT_OK;
         }
         else if(targetData->localDepth==32){    //reached MAX depth
           //make next block
