@@ -178,6 +178,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   IndexBlock *index;
   BF_Block *indexBlock;
+  CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index,indexBlock))
   int count=1;
   do{
     index = (IndexBlock *)BF_Block_GetData(indexBlock);
@@ -338,7 +339,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         }
       }
     }
-  }while(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index,indexBlock));
+  }while(BF_GetBlock(open_files[indexDesc].fileDesc,index->nextBlock,indexBlock));
   return HT_OK;
 }
 
