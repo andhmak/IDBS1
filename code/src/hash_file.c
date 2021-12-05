@@ -347,20 +347,27 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   if (id==NULL){
-    /* code */
+    printf("Printing entries with ID: %i\n", *id);
+    IndexBlock *index = open_files[indexDesc].index;
   }
   else{
 
     printf("Printing entries with ID: %i\n", *id);
-    IndexBlock *index = open_files[indexDesc].index;
+    IndexBlock *index;
+    BF_Block *indexBlock;
+    CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index,indexBlock));
+    index = (IndexBlock *)BF_Block_GetData(indexBlock);
     int hashID = (hash_func(id)%(2^index->globalDepth));
     int count=1;
     while (index->nextBlock){
       if(count*INDEX_ARRAY_SIZE<hashID){
-        index = index->nextBlock;
+        CALL_BF(BF_UnpinBlock(indexBlock));
+        CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,index->nextBlock,indexBlock));
+        index = (IndexBlock *)BF_Block_GetData(indexBlock);
         count++;
       }
       else{
+        CALL_BF(BF_UnpinBlock(indexBlock));
         BF_Block *targetBlock;
         CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,index->index[hashID-(count*INDEX_ARRAY_SIZE)],targetBlock));
         DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
