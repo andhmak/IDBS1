@@ -182,7 +182,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   index = (IndexBlock *)BF_Block_GetData(indexBlock);
   int hashID = (hash_func(record.id)%(2^index->globalDepth));
   int count=1;
-  while (index->nextBlock){
+  while (index->nextBlock!=-1){
     if(count*INDEX_ARRAY_SIZE<hashID){
       CALL_BF(BF_UnpinBlock(indexBlock));
       CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,index->nextBlock,indexBlock));
@@ -359,7 +359,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
     index = (IndexBlock *)BF_Block_GetData(indexBlock);
     int hashID = (hash_func(id)%(2^index->globalDepth));
     int count=1;
-    while (index->nextBlock){
+    while (index->nextBlock!=-1){
       if(count*INDEX_ARRAY_SIZE<hashID){
         CALL_BF(BF_UnpinBlock(indexBlock));
         CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,index->nextBlock,indexBlock));
