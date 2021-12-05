@@ -346,7 +346,36 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   if (id==NULL){
     printf("Printing entries with ID: %i\n", *id);
-    IndexBlock *index = open_files[indexDesc].index;
+    IndexBlock *index;
+    BF_Block *indexBlock;
+    CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index,indexBlock));
+    
+    do{
+      index = (IndexBlock *)BF_Block_GetData(indexBlock);
+      for (int i=0;i<INDEX_ARRAY_SIZE;i++){
+        BF_Block *targetBlock;
+        CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,index->index[i],targetBlock));
+        DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+
+        for (int i = 0; i < targetData->lastEmpty; i++){
+          if (*id==targetData->index[i].id){
+            printf("{%i,%s,%s,%s}\n", targetData->index[i].id, targetData->index[i].name, targetData->index[i].surname, targetData->index[i].city);
+          }
+        }
+        while(targetData->nextBlock!=-1){
+          CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
+          CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,targetData->nextBlock,targetBlock));
+          targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+          for (int i = 0; i < targetData->lastEmpty; i++){
+            if (*id==targetData->index[i].id){
+              printf("{%i,%s,%s,%s}\n", targetData->index[i].id, targetData->index[i].name, targetData->index[i].surname, targetData->index[i].city);
+            }
+          }
+        }
+        CALL_BF(BF_UnpinBlock(targetBlock));
+      }
+    }while(BF_GetBlock(open_files[indexDesc].fileDesc,index->nextBlock,indexBlock));
+    CALL_BF(BF_UnpinBlock(indexBlock));
   }
   else{
 
@@ -386,6 +415,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
         CALL_BF(BF_UnpinBlock(targetBlock));
       }
     }while(BF_GetBlock(open_files[indexDesc].fileDesc,index->nextBlock,indexBlock));
+    CALL_BF(BF_UnpinBlock(indexBlock));
   }
   return HT_OK;
 }
