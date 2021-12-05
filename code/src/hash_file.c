@@ -184,8 +184,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     int hashID = (hash_func(record.id)%(2^index->globalDepth));
     if(count*INDEX_ARRAY_SIZE<hashID){
       CALL_BF(BF_UnpinBlock(indexBlock));
-      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,index->nextBlock,indexBlock));
-      index = (IndexBlock *)BF_Block_GetData(indexBlock);
       count++;
     }
     else{
