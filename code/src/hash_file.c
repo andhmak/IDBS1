@@ -140,10 +140,8 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   }
   int nextBlock;
   for (int j = 0 ; nextBlock != -1 ; ) {
-    for (int k = 0 ; k < INDEX_ARRAY_SIZE ; k++, j++) {
-      if (j < indexSize) {
-        open_files[i].index[j] = data->index[k];
-      }
+    for (int k = 0 ; k < INDEX_ARRAY_SIZE && j < indexSize; k++, j++) {
+      open_files[i].index[j] = data->index[k];
     }
     nextBlock = data->nextBlock;
     CALL_BF(BF_UnpinBlock(block));
