@@ -162,18 +162,15 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   }
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
   open_files[indexDesc].fileDesc = -1;
-  return HT_OK;
 
   int fd = open_files[indexDesc].fileDesc;
   BF_Block* block;
   CALL_BF(BF_GetBlock(fd, 0, block));
   IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
-  open_files[indexDesc].globalDepth = data->globalDepth;
   int indexSize = 1;
-  for (int j = 0; j < data->globalDepth; j++) {
+  for (int j = 0; j < open_files[indexDesc].globalDepth; j++) {
     indexSize *= 2;
   }
-  open_files[indexDesc].index = malloc(indexSize*sizeof(int));
   int nextBlock;
   for (int j = 0 ; nextBlock != -1 ; ) {
     for (int k = 0 ; k < INDEX_ARRAY_SIZE ; k++, j++) {
@@ -188,6 +185,9 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
       data = (IndexBlock*) BF_Block_GetData(block);
     }
   }
+
+  free(open_files[indexDesc].index);
+  return HT_OK;
 }
 
 //compares the hash value of first entry to all others
