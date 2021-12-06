@@ -239,6 +239,77 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     }
     else{
       //split
+      if(open_files[indexDesc].globalDepth==targetData->localDepth){
+        open_files[indexDesc].globalDepth++;
+        int *newIndex[2^open_files[indexDesc].globalDepth];
+        for (int i=0,j=0;i<2^(open_files[indexDesc].globalDepth-1) && j<2^(open_files[indexDesc].globalDepth);i++,j++){
+          newIndex[j]=open_files[indexDesc].index[i];
+          newIndex[j+1]=open_files[indexDesc].index[i];
+        }
+        BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+
+        BF_Block *newBlock;
+        DataBlock *newBlockData;
+        CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+        newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,open_files[indexDesc].index[2*hashID]));
+        newBlockData->localDepth = open_files[indexDesc].globalDepth;
+        newBlockData->lastEmpty = 0;
+        newBlockData->nextBlock = -1;
+        
+        CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+        newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,open_files[indexDesc].index[(2*hashID)+1]));
+        newBlockData->localDepth = open_files[indexDesc].globalDepth;
+        newBlockData->lastEmpty = 0;
+        newBlockData->nextBlock = -1;
+
+        free(open_files[indexDesc].index);
+        open_files[indexDesc].index=newIndex;
+        for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
+          HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
+        }
+        return HT_OK; 
+      }
+      else if(open_files[indexDesc].globalDepth>targetData->localDepth){
+        int firstIDtoBlock=hashID-(hashID%(2^targetData->localDepth));
+        
+        int dataBlock1,dataBlock2;
+        BF_Block *newBlock;
+        DataBlock *newBlockData;
+        CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+        newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,dataBlock1));
+        newBlockData->localDepth = targetData->localDepth+1;
+        newBlockData->lastEmpty = 0;
+        newBlockData->nextBlock = -1;
+        
+        CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+        newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,dataBlock2));
+        newBlockData->localDepth = targetData->localDepth+1;
+        newBlockData->lastEmpty = 0;
+        newBlockData->nextBlock = -1;
+        
+        BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+        for (int i=firstIDtoBlock;i<firstIDtoBlock+2^(targetData->localDepth-1);i++){
+          open_files[indexDesc].index[i]=dataBlock1;
+        }
+        for (int i=firstIDtoBlock+2^(targetData->localDepth-1);i<firstIDtoBlock+2^(targetData->localDepth);i++){
+          open_files[indexDesc].index[i]=dataBlock2;
+        }
+        for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
+          HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
+        }
+        return HT_OK; 
+      }
+      else{
+        return HT_ERROR;
+      }
     }
   }
   else{                           //has overflow
@@ -281,6 +352,77 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       }
       else{
         //split
+        if(open_files[indexDesc].globalDepth==targetData->localDepth){
+          open_files[indexDesc].globalDepth++;
+          int *newIndex[2^open_files[indexDesc].globalDepth];
+          for (int i=0,j=0;i<2^(open_files[indexDesc].globalDepth-1) && j<2^(open_files[indexDesc].globalDepth);i++,j++){
+            newIndex[j]=open_files[indexDesc].index[i];
+            newIndex[j+1]=open_files[indexDesc].index[i];
+          }
+          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+
+          BF_Block *newBlock;
+          DataBlock *newBlockData;
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,open_files[indexDesc].index[2*hashID]));
+          newBlockData->localDepth = open_files[indexDesc].globalDepth;
+          newBlockData->lastEmpty = 0;
+          newBlockData->nextBlock = -1;
+          
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,open_files[indexDesc].index[(2*hashID)+1]));
+          newBlockData->localDepth = open_files[indexDesc].globalDepth;
+          newBlockData->lastEmpty = 0;
+          newBlockData->nextBlock = -1;
+
+          free(open_files[indexDesc].index);
+          open_files[indexDesc].index=newIndex;
+          for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
+            HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
+          }
+          return HT_OK; 
+        }
+        else if(open_files[indexDesc].globalDepth>targetData->localDepth){
+          int firstIDtoBlock=hashID-(hashID%(2^targetData->localDepth));
+          
+          int dataBlock1,dataBlock2;
+          BF_Block *newBlock;
+          DataBlock *newBlockData;
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,dataBlock1));
+          newBlockData->localDepth = targetData->localDepth+1;
+          newBlockData->lastEmpty = 0;
+          newBlockData->nextBlock = -1;
+          
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,dataBlock2));
+          newBlockData->localDepth = targetData->localDepth+1;
+          newBlockData->lastEmpty = 0;
+          newBlockData->nextBlock = -1;
+          
+          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+          for (int i=firstIDtoBlock;i<firstIDtoBlock+2^(targetData->localDepth-1);i++){
+            open_files[indexDesc].index[i]=dataBlock1;
+          }
+          for (int i=firstIDtoBlock+2^(targetData->localDepth-1);i<firstIDtoBlock+2^(targetData->localDepth);i++){
+            open_files[indexDesc].index[i]=dataBlock2;
+          }
+          for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
+            HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
+          }
+          return HT_OK; 
+        }
+        else{
+          return HT_ERROR;
+        }
       }
     }
     else{                                       //last block is full
@@ -324,6 +466,77 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       }
       else{
         //split
+        if(open_files[indexDesc].globalDepth==targetData->localDepth){
+          open_files[indexDesc].globalDepth++;
+          int *newIndex[2^open_files[indexDesc].globalDepth];
+          for (int i=0,j=0;i<2^(open_files[indexDesc].globalDepth-1) && j<2^(open_files[indexDesc].globalDepth);i++,j++){
+            newIndex[j]=open_files[indexDesc].index[i];
+            newIndex[j+1]=open_files[indexDesc].index[i];
+          }
+          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+
+          BF_Block *newBlock;
+          DataBlock *newBlockData;
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,open_files[indexDesc].index[2*hashID]));
+          newBlockData->localDepth = open_files[indexDesc].globalDepth;
+          newBlockData->lastEmpty = 0;
+          newBlockData->nextBlock = -1;
+          
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,open_files[indexDesc].index[(2*hashID)+1]));
+          newBlockData->localDepth = open_files[indexDesc].globalDepth;
+          newBlockData->lastEmpty = 0;
+          newBlockData->nextBlock = -1;
+
+          free(open_files[indexDesc].index);
+          open_files[indexDesc].index=newIndex;
+          for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
+            HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
+          }
+          return HT_OK; 
+        }
+        else if(open_files[indexDesc].globalDepth>targetData->localDepth){
+          int firstIDtoBlock=hashID-(hashID%(2^targetData->localDepth));
+          
+          int dataBlock1,dataBlock2;
+          BF_Block *newBlock;
+          DataBlock *newBlockData;
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,dataBlock1));
+          newBlockData->localDepth = targetData->localDepth+1;
+          newBlockData->lastEmpty = 0;
+          newBlockData->nextBlock = -1;
+          
+          CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
+          newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
+
+          CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,dataBlock2));
+          newBlockData->localDepth = targetData->localDepth+1;
+          newBlockData->lastEmpty = 0;
+          newBlockData->nextBlock = -1;
+          
+          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+          for (int i=firstIDtoBlock;i<firstIDtoBlock+2^(targetData->localDepth-1);i++){
+            open_files[indexDesc].index[i]=dataBlock1;
+          }
+          for (int i=firstIDtoBlock+2^(targetData->localDepth-1);i<firstIDtoBlock+2^(targetData->localDepth);i++){
+            open_files[indexDesc].index[i]=dataBlock2;
+          }
+          for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
+            HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
+          }
+          return HT_OK; 
+        }
+        else{
+          return HT_ERROR;
+        }
       }
     }
   }
