@@ -178,7 +178,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   for (int j = 0 ; nextBlock != -1 ; ) {
     for (int k = 0 ; k < INDEX_ARRAY_SIZE ; k++, j++) {
       if (j < indexSize) {
-        open_files[indexDesc].index[j] = data->index[k];
+        data->index[k] = open_files[indexDesc].index[j];
       }
     }
     nextBlock = data->nextBlock;
