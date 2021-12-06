@@ -160,8 +160,6 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   if ((indexDesc < 0) || (indexDesc >= MAX_OPEN_FILES) || (open_files[indexDesc].fileDesc == -1)) {
     return HT_ERROR;
   }
-  CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
-  open_files[indexDesc].fileDesc = -1;
 
   int fd = open_files[indexDesc].fileDesc;
   BF_Block* block;
@@ -186,7 +184,9 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     }
   }
 
+  CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
   free(open_files[indexDesc].index);
+  open_files[indexDesc].fileDesc = -1;
   return HT_OK;
 }
 
