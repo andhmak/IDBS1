@@ -176,6 +176,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     for (int k = 0 ; k < INDEX_ARRAY_SIZE ; k++, j++) {
       data->index[k] = open_files[indexDesc].index[j];
     }
+    data->globalDepth = open_files[indexDesc].globalDepth;
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
       data->nextBlock = blockAmount++;
