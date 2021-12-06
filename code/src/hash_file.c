@@ -130,10 +130,14 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
   open_files[i].globalDepth = data->globalDepth;
   int indexSize = 1;
-  for (int i = 0; i < data->globalDepth; i++) {
+  for (int j = 0; j < data->globalDepth; j++) {
     indexSize *= 2;
   }
-  open_files[i].index = malloc(indexSize*sizeof(int));
+  if ((open_files[i].index = malloc(indexSize*sizeof(int))) == NULL) {
+    CALL_BF(BF_UnpinBlock(block));
+    CALL_BF(BF_Close(fd));
+    return HT_ERROR;
+  }
   int nextBlock;
   for (int j = 0 ; nextBlock != -1 ; ) {
     for (int k = 0 ; k < INDEX_ARRAY_SIZE ; k++, j++) {
