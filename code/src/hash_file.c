@@ -182,12 +182,14 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
       data->nextBlock = blockAmount++;
       CALL_BF(BF_UnpinBlock(block));
       CALL_BF(BF_AllocateBlock(fd, block));
+      data = (IndexBlock*) BF_Block_GetData(block);
+      data->nextBlock = -1;
     }
     else {
       CALL_BF(BF_UnpinBlock(block));
       CALL_BF(BF_GetBlock(fd, nextBlock, block));
+      data = (IndexBlock*) BF_Block_GetData(block);
     }
-    data = (IndexBlock*) BF_Block_GetData(block);
   }
 
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
