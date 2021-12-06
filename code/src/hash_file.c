@@ -164,20 +164,21 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   open_files[indexDesc].fileDesc = -1;
   return HT_OK;
 
+  int fd = open_files[indexDesc].fileDesc;
   BF_Block* block;
   CALL_BF(BF_GetBlock(fd, 0, block));
   IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
-  open_files[i].globalDepth = data->globalDepth;
+  open_files[indexDesc].globalDepth = data->globalDepth;
   int indexSize = 1;
-  for (int i = 0; i < data->globalDepth; i++) {
+  for (int j = 0; j < data->globalDepth; j++) {
     indexSize *= 2;
   }
-  open_files[i].index = malloc(indexSize*sizeof(int));
+  open_files[indexDesc].index = malloc(indexSize*sizeof(int));
   int nextBlock;
   for (int j = 0 ; nextBlock != -1 ; ) {
     for (int k = 0 ; k < INDEX_ARRAY_SIZE ; k++, j++) {
       if (j < indexSize) {
-        open_files[i].index[j] = data->index[k];
+        open_files[indexDesc].index[j] = data->index[k];
       }
     }
     nextBlock = data->nextBlock;
