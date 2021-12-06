@@ -140,7 +140,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   }
   int nextBlock;
   for (int j = 0 ; nextBlock != -1 ; ) {
-    for (int k = 0 ; k < INDEX_ARRAY_SIZE && j < indexSize; k++, j++) {
+    for (int k = 0 ; (k < INDEX_ARRAY_SIZE) && (j < indexSize); k++, j++) {
       open_files[i].index[j] = data->index[k];
     }
     nextBlock = data->nextBlock;
@@ -171,19 +171,21 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
   int nextBlock;
   for (int j = 0 ; j < indexSize ; ) {
-    for (int k = 0 ; k < INDEX_ARRAY_SIZE && j < indexSize; k++, j++) {
+    for (int k = 0 ; (k < INDEX_ARRAY_SIZE) && (j < indexSize); k++, j++) {
       data->index[k] = open_files[indexDesc].index[j];
     }
     data->globalDepth = open_files[indexDesc].globalDepth;
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
       data->nextBlock = blockAmount++;
+      BF_Block_SetDirty(block);
       CALL_BF(BF_UnpinBlock(block));
       CALL_BF(BF_AllocateBlock(fd, block));
       data = (IndexBlock*) BF_Block_GetData(block);
       data->nextBlock = -1;
     }
     else {
+      BF_Block_SetDirty(block);
       CALL_BF(BF_UnpinBlock(block));
       CALL_BF(BF_GetBlock(fd, nextBlock, block));
       data = (IndexBlock*) BF_Block_GetData(block);
