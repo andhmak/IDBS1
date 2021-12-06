@@ -169,19 +169,20 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   for (int j = 0; j < open_files[indexDesc].globalDepth; j++) {
     indexSize *= 2;
   }
+  int blockAmount;
+  CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
   int nextBlock;
-  for (int j = 0 ; nextBlock != -1 ; ) {
+  for (int j = 0 ; j < indexSize ; ) {
     for (int k = 0 ; k < INDEX_ARRAY_SIZE ; k++, j++) {
-      if (j < indexSize) {
-        data->index[k] = open_files[indexDesc].index[j];
-      }
+      data->index[k] = open_files[indexDesc].index[j];
     }
     nextBlock = data->nextBlock;
-    CALL_BF(BF_UnpinBlock(block));
-    if (nextBlock != -1) {
+    if (nextBlock == -1) {
+      CALL_BF(BF_AllocateBlock(fd, block));
       CALL_BF(BF_GetBlock(fd, nextBlock, block));
       data = (IndexBlock*) BF_Block_GetData(block);
     }
+    CALL_BF(BF_UnpinBlock(block));
   }
 
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
