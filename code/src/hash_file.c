@@ -218,7 +218,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_UnpinBlock(newBlock));
       return HT_OK;
     }
-    else if(targetData->localDepth==32){    //reached MAX depth
+    else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
       //make next block
       BF_Block *newBlock;
       DataBlock *newBlockData;
@@ -342,7 +342,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_UnpinBlock(targetBlock));
         return HT_OK;
       }
-      else if(targetData->localDepth==32){    //reached MAX depth
+      else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
         //insert
         targetData->index[targetData->lastEmpty] = record;
         targetData->lastEmpty++;
@@ -452,7 +452,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_UnpinBlock(newBlock));
         return HT_OK;
       }
-      else if(targetData->localDepth==32){    //reached MAX depth
+      else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
         //new block
         BF_Block *newBlock;
         DataBlock *newBlockData;
