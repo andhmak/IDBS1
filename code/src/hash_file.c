@@ -359,7 +359,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
             newIndex[j]=open_files[indexDesc].index[i];
             newIndex[j+1]=open_files[indexDesc].index[i];
           }
-          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+          BF_Block *blockToDelete;
+          DataBlock *tempData;
+          CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],blockToDelete));
+          for (int i=0;i<blockCount;i++){
+            tempData = (DataBlock *)BF_Block_GetData(blockToDelete);
+            BF_Block_Destroy(&blockToDelete);
+            if(tempData->nextBlock!=-1) BF_GetBlock(open_files[indexDesc].fileDesc,tempData->nextBlock,blockToDelete);
+          }
 
           BF_Block *newBlock;
           DataBlock *newBlockData;
@@ -473,7 +480,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
             newIndex[j]=open_files[indexDesc].index[i];
             newIndex[j+1]=open_files[indexDesc].index[i];
           }
-          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+          BF_Block *blockToDelete;
+          DataBlock *tempData;
+          CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],blockToDelete));
+          for (int i=0;i<blockCount;i++){
+            tempData = (DataBlock *)BF_Block_GetData(blockToDelete);
+            BF_Block_Destroy(&blockToDelete);
+            if(tempData->nextBlock!=-1) BF_GetBlock(open_files[indexDesc].fileDesc,tempData->nextBlock,blockToDelete);
+          }
 
           BF_Block *newBlock;
           DataBlock *newBlockData;
