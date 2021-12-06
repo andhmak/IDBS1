@@ -133,7 +133,11 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   for (int j = 0; j < data->globalDepth; j++) {
     indexSize *= 2;
   }
-  open_files[i].index = malloc(indexSize*sizeof(int));
+  if ((open_files[i].index = malloc(indexSize*sizeof(int))) == NULL) {
+    CALL_BF(BF_UnpinBlock(block));
+    CALL_BF(BF_Close(fd));
+    return HT_ERROR;
+  }
   int nextBlock;
   for (int j = 0 ; nextBlock != -1 ; ) {
     for (int k = 0 ; k < INDEX_ARRAY_SIZE ; k++, j++) {
@@ -242,7 +246,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_UnpinBlock(newBlock));
       return HT_OK;
     }
-    else if(targetData->localDepth==32){    //reached MAX depth
+    else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
       //make next block
       BF_Block *newBlock;
       DataBlock *newBlockData;
@@ -366,7 +370,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_UnpinBlock(targetBlock));
         return HT_OK;
       }
-      else if(targetData->localDepth==32){    //reached MAX depth
+      else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
         //insert
         targetData->index[targetData->lastEmpty] = record;
         targetData->lastEmpty++;
@@ -383,7 +387,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
             newIndex[j]=open_files[indexDesc].index[i];
             newIndex[j+1]=open_files[indexDesc].index[i];
           }
-          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+          BF_Block *blockToDelete;
+          DataBlock *tempData;
+          CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],blockToDelete));
+          for (int i=0;i<blockCount;i++){
+            tempData = (DataBlock *)BF_Block_GetData(blockToDelete);
+            BF_Block_Destroy(&blockToDelete);
+            if(tempData->nextBlock!=-1) BF_GetBlock(open_files[indexDesc].fileDesc,tempData->nextBlock,blockToDelete);
+          }
 
           BF_Block *newBlock;
           DataBlock *newBlockData;
@@ -469,7 +480,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_UnpinBlock(newBlock));
         return HT_OK;
       }
-      else if(targetData->localDepth==32){    //reached MAX depth
+      else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
         //new block
         BF_Block *newBlock;
         DataBlock *newBlockData;
@@ -497,7 +508,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
             newIndex[j]=open_files[indexDesc].index[i];
             newIndex[j+1]=open_files[indexDesc].index[i];
           }
-          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
+          BF_Block *blockToDelete;
+          DataBlock *tempData;
+          CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],blockToDelete));
+          for (int i=0;i<blockCount;i++){
+            tempData = (DataBlock *)BF_Block_GetData(blockToDelete);
+            BF_Block_Destroy(&blockToDelete);
+            if(tempData->nextBlock!=-1) BF_GetBlock(open_files[indexDesc].fileDesc,tempData->nextBlock,blockToDelete);
+          }
 
           BF_Block *newBlock;
           DataBlock *newBlockData;
