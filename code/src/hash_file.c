@@ -99,7 +99,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_UnpinBlock(block));
   }
 
-  for (int i; i < arraySize; i++) {
+  for (int i = 0; i < arraySize; i++) {
     BF_Block* dataBlock;
     CALL_BF(BF_AllocateBlock(fileDesc, dataBlock));
     DataBlock* dataBlockData = (DataBlock*) BF_Block_GetData(dataBlock);
@@ -110,12 +110,12 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_UnpinBlock(dataBlock));
   }
 
-  int dataBlockCounter = indexBlockAmount;
-  for (int i = 0; i < indexBlockAmount; i++){
+  int dataBlockCounter = indexBlockAmount + 1;
+  for (int i = 1; i < indexBlockAmount + 1; i++){
     CALL_BF(BF_GetBlock(fileDesc, i, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     for (int j = 0; i < INDEX_ARRAY_SIZE; j++){
-      if (dataBlockCounter < indexBlockAmount + arraySize - 1) data->index[j] = dataBlockCounter;
+      if (dataBlockCounter < indexBlockAmount + arraySize + 1) data->index[j] = dataBlockCounter;
       else data->index[j] = -1;
       dataBlockCounter++;      
     }
@@ -195,7 +195,6 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     for (int k = 0 ; (k < INDEX_ARRAY_SIZE) && (j < indexSize); k++, j++) {
       data->index[k] = open_files[indexDesc].index[j];
     }
-    data->globalDepth = open_files[indexDesc].globalDepth;
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
       data->nextBlock = blockAmount++;
