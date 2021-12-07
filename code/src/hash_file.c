@@ -693,13 +693,13 @@ HT_ErrorCode  HashStatistics(char* filename) {
   CALL_BF(BF_OpenFile(filename, &fd));
   int blockAmount;
   CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
-  printf("Block amount: %d", blockAmount);
+  printf("Block amount: %d\n", blockAmount);
   BF_Block* block;
   CALL_BF(BF_GetBlock(fd, 0, block));
   StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
-  printf("Mimimum records per bucket: %d", stat->min_rec_per_bucket);
-  printf("Average records per bucket: %d", stat->total_recs/stat->total_buckets);
-  printf("Maximum records per bucket: %d", stat->max_rec_per_bucket);
+  printf("Mimimum records per bucket: %d\n", stat->min_rec_per_bucket);
+  printf("Average records per bucket: %d\n", stat->total_recs/stat->total_buckets);
+  printf("Maximum records per bucket: %d\n", stat->max_rec_per_bucket);
   CALL_BF(BF_UnpinBlock(block));
   CALL_BF(BF_CloseFile(fd));
 }
