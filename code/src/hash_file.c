@@ -27,8 +27,9 @@ int hash_func(int x) {
 
 typedef struct StatBlock {
   int min_rec_per_bucket;
-  int average_rec_per_bucket;
   int max_rec_per_bucket;
+  int total_recs;
+  int total_buckets;
   int globalDepth;
 } StatBlock;
 
@@ -70,13 +71,26 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     arraySize *= 2;
   }
 
-  int indexBlockAmount = (arraySize - 1) / INDEX_ARRAY_SIZE + 1;
   BF_Block* block;
+
+  CALL_BF(BF_AllocateBlock(fileDesc, block));
+  StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
+
+  stat->globalDepth = depth;
+  stat->max_rec_per_bucket = 0;
+  stat->min_rec_per_bucket = 0;
+  stat->total_buckets = arraySize;
+  stat->total_recs = 0;
+
+  BF_Block_SetDirty(block);
+  CALL_BF(BF_UnpinBlock(block));
+
+  int indexBlockAmount = (arraySize - 1) / INDEX_ARRAY_SIZE + 1;
   for (int i = 0; i < indexBlockAmount; i++){
     CALL_BF(BF_AllocateBlock(fileDesc, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     if (i+1 < indexBlockAmount) {
-      data->nextBlock = i+1;
+      data->nextBlock = i+2;
     }
     else {
       data->nextBlock = -1;
