@@ -702,4 +702,5 @@ HT_ErrorCode HashStatistics(char* filename) {
   printf("Maximum records per bucket: %d\n", stat->max_rec_per_bucket);
   CALL_BF(BF_UnpinBlock(block));
   CALL_BF(BF_CloseFile(fd));
+  return HT_OK;
 }
