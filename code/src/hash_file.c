@@ -158,11 +158,10 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   open_files[i].total_recs = stat->total_recs;
   CALL_BF(BF_UnpinBlock(block));
   int indexSize = 1;
-  for (int j = 0; j < stat->globalDepth; j++) {
+  for (int j = 0; j < open_files[i].globalDepth; j++) {
     indexSize *= 2;
   }
   if ((open_files[i].index = malloc(indexSize*sizeof(int))) == NULL) {
-    CALL_BF(BF_UnpinBlock(block));
     CALL_BF(BF_Close(fd));
     return HT_ERROR;
   }
@@ -692,6 +691,15 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 HT_ErrorCode  HashStatistics(char* filename) {
   int fd;
   CALL_BF(BF_OpenFile(filename, &fd));
-
+  int blockAmount;
+  CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
+  printf("Block amount: %d", blockAmount);
+  BF_Block* block;
+  CALL_BF(BF_GetBlock(fd, 0, block));
+  StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
+  printf("Mimimum records per bucket: %d", stat->min_rec_per_bucket);
+  printf("Average records per bucket: %d", stat->total_recs/stat->total_buckets);
+  printf("Maximum records per bucket: %d", stat->max_rec_per_bucket);
+  CALL_BF(BF_UnpinBlock(block));
   CALL_BF(BF_CloseFile(fd));
 }
