@@ -46,6 +46,10 @@ typedef struct DataBlock {
 } DataBlock;
 
 typedef struct OpenFileData {
+  int min_rec_per_bucket;
+  int max_rec_per_bucket;
+  int total_recs;
+  int total_buckets;
   int fileDesc;
   int globalDepth;
   int *index;
@@ -148,6 +152,10 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   CALL_BF(BF_GetBlock(fd, 0, block));
   StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
   open_files[i].globalDepth = stat->globalDepth;
+  open_files[i].min_rec_per_bucket = stat->min_rec_per_bucket;
+  open_files[i].max_rec_per_bucket = stat->max_rec_per_bucket;
+  open_files[i].total_buckets = stat->total_buckets;
+  open_files[i].total_recs = stat->total_recs;
   int indexSize = 1;
   for (int j = 0; j < stat->globalDepth; j++) {
     indexSize *= 2;
@@ -182,7 +190,18 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
 
   int fd = open_files[indexDesc].fileDesc;
   BF_Block* block;
+
   CALL_BF(BF_GetBlock(fd, 0, block));
+  StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
+  stat->globalDepth = open_files[indexDesc].globalDepth;
+  stat->min_rec_per_bucket = open_files[indexDesc].min_rec_per_bucket;
+  stat->max_rec_per_bucket = open_files[indexDesc].max_rec_per_bucket;
+  stat->total_buckets = open_files[indexDesc].total_buckets;
+  stat->total_recs = open_files[indexDesc].total_recs;
+  BF_Block_SetDirty(block);
+  CALL_BF(BF_UnpinBlock(block));
+
+  CALL_BF(BF_GetBlock(fd, 1, block));
   IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
   int indexSize = 1;
   for (int j = 0; j < open_files[indexDesc].globalDepth; j++) {
