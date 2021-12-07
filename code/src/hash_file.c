@@ -6,7 +6,7 @@
 #include "hash_file.h"
 #define MAX_OPEN_FILES 20
 
-#define INDEX_ARRAY_SIZE (BF_BLOCK_SIZE-2*sizeof(int))/sizeof(int)
+#define INDEX_ARRAY_SIZE (BF_BLOCK_SIZE-sizeof(int))/sizeof(int)
 #define DATA_ARRAY_SIZE (BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record)
 
 #define CALL_BF(call)       \
@@ -25,8 +25,14 @@ int hash_func(int x) {
     return x;
 }
 
-typedef struct IndexBlock {
+typedef struct StatBlock {
+  int min_rec_per_bucket;
+  int average_rec_per_bucket;
+  int max_rec_per_bucket;
   int globalDepth;
+} StatBlock;
+
+typedef struct IndexBlock {
   int nextBlock;
   int index[INDEX_ARRAY_SIZE];
 } IndexBlock;
@@ -69,7 +75,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   for (int i = 0; i < indexBlockAmount; i++){
     CALL_BF(BF_AllocateBlock(fileDesc, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
-    data->globalDepth = depth;
     if (i+1 < indexBlockAmount) {
       data->nextBlock = i+1;
     }
@@ -127,10 +132,10 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
 
   BF_Block* block;
   CALL_BF(BF_GetBlock(fd, 0, block));
-  IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
-  open_files[i].globalDepth = data->globalDepth;
+  StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
+  open_files[i].globalDepth = stat->globalDepth;
   int indexSize = 1;
-  for (int j = 0; j < data->globalDepth; j++) {
+  for (int j = 0; j < stat->globalDepth; j++) {
     indexSize *= 2;
   }
   if ((open_files[i].index = malloc(indexSize*sizeof(int))) == NULL) {
@@ -138,6 +143,8 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
     CALL_BF(BF_Close(fd));
     return HT_ERROR;
   }
+  CALL_BF(BF_GetBlock(fd, 1, block));
+  IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
   int nextBlock;
   for (int j = 0 ; nextBlock != -1 ; ) {
     for (int k = 0 ; (k < INDEX_ARRAY_SIZE) && (j < indexSize); k++, j++) {
