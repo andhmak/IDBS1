@@ -688,7 +688,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   return HT_OK;
 }
 
-HT_ErrorCode  HashStatistics(char* filename) {
+HT_ErrorCode HashStatistics(char* filename) {
   int fd;
   CALL_BF(BF_OpenFile(filename, &fd));
   int blockAmount;
