@@ -156,6 +156,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   open_files[i].max_rec_per_bucket = stat->max_rec_per_bucket;
   open_files[i].total_buckets = stat->total_buckets;
   open_files[i].total_recs = stat->total_recs;
+  CALL_BF(BF_UnpinBlock(block));
   int indexSize = 1;
   for (int j = 0; j < stat->globalDepth; j++) {
     indexSize *= 2;
@@ -688,3 +689,9 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   return HT_OK;
 }
 
+HT_ErrorCode  HashStatistics(char* filename) {
+  int fd;
+  CALL_BF(BF_OpenFile(filename, &fd));
+
+  CALL_BF(BF_CloseFile(fd));
+}
