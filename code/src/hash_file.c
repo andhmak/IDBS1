@@ -253,7 +253,7 @@ int sameHash(Record *records){
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   
-  int hashID = (hash_func(record.id)%(2^open_files[indexDesc].globalDepth));
+  int hashID = (hash_func(record.id)/(sizeof(int) - open_files[indexDesc].globalDepth));
   BF_Block *targetBlock;
   CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
   DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
