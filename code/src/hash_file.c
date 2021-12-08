@@ -46,6 +46,9 @@ typedef struct DataBlock {
 } DataBlock;
 
 typedef struct OpenFileData {
+  int isMain;
+  int mainPos;
+  char *filename;
   int fileDesc;
   int globalDepth;
   int *index;
@@ -129,21 +132,38 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 }
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
-  //insert code here
-  int fd;
-  CALL_BF(BF_OpenFile(fileName, &fd));
+  // Check for empty position in open files array
   int i;
   for (i = 0 ; i < MAX_OPEN_FILES ; i++) {
     if(open_files[i].fileDesc == -1) {
-      open_files[i].fileDesc = fd;
       break;
     }
   }
   if (i == MAX_OPEN_FILES) {
     return HT_ERROR;
   }
-  *indexDesc = i;
 
+  *indexDesc = i;
+  open_files[i].filename = fileName;
+
+  // Check if file is already open
+  for (int j = 0 ; j < MAX_OPEN_FILES ; j++) {
+    if((strcmp(open_files[j].filename, fileName) == 0) && (open_files[j].isMain)) {
+      open_files[i].isMain = 0;
+      open_files[i].mainPos = j;
+      open_files[i].fileDesc = open_files[j].fileDesc;
+      open_files[i].index = open_files[j].index;
+      return HT_OK;
+    }
+  }
+  
+  // Else open it bring everything necessary to memory
+  open_files[i].isMain = 1;
+  open_files[i].mainPos = -1;
+  int fd;
+  CALL_BF(BF_OpenFile(fileName, &fd));
+  open_files[i].fileDesc = fd;
+  
   BF_Block* block;
   CALL_BF(BF_GetBlock(fd, 0, block));
   StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
@@ -178,6 +198,22 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   //insert code here
   if ((indexDesc < 0) || (indexDesc >= MAX_OPEN_FILES) || (open_files[indexDesc].fileDesc == -1)) {
     return HT_ERROR;
+  }
+
+  // Check if secondary entry
+  if (open_files[indexDesc].isMain == 0) {
+    open_files[indexDesc].fileDesc = -1;
+    return HT_OK;
+  }
+
+  // Check if file is already open
+  for (int j = 0 ; j < MAX_OPEN_FILES ; j++) {
+    if((strcmp(open_files[j].filename, open_files[indexDesc].filename) == 0) && (j != indexDesc)) {
+      open_files[j].isMain = 1;
+      open_files[j].mainPos = -1;
+      open_files[j].globalDepth = open_files[indexDesc].globalDepth;
+      return HT_OK;
+    }
   }
 
   int fd = open_files[indexDesc].fileDesc;

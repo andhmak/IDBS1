@@ -71,6 +71,7 @@ int main() {
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME_1, GLOBAL_DEPT));
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME_1, &indexDesc)); 
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME_2, GLOBAL_DEPT));
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_1, &indexDesc)); 
 
   Record record;
   srand(12569874);
@@ -79,6 +80,18 @@ int main() {
   for (int id = 0; id < RECORDS_NUM; ++id) {
     // create a record
     record.id = id;
+    r = rand() % 12;
+    memcpy(record.name, names[r], strlen(names[r]) + 1);
+    r = rand() % 12;
+    memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
+    r = rand() % 10;
+    memcpy(record.city, cities[r], strlen(cities[r]) + 1);
+
+    CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+  }
+  for (int id = 0; id < RECORDS_NUM; ++id) {
+    // create a record
+    record.id = 5;
     r = rand() % 12;
     memcpy(record.name, names[r], strlen(names[r]) + 1);
     r = rand() % 12;
