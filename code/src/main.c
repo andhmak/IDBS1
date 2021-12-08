@@ -68,8 +68,8 @@ int main() {
   CALL_OR_DIE(HT_Init());
 
   int indexDesc;
-  CALL_OR_DIE(HT_CreateIndex(FILE_NAME, GLOBAL_DEPT));
-  CALL_OR_DIE(HT_OpenIndex(FILE_NAME, &indexDesc)); 
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME_1, GLOBAL_DEPT));
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_1, &indexDesc)); 
 
   Record record;
   srand(12569874);
