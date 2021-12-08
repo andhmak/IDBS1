@@ -339,6 +339,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
           HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
         }
+        CALL_BF(BF_UnpinBlock(targetBlock));
         return HT_OK; 
       }
       else if(open_files[indexDesc].globalDepth>targetData->localDepth){
@@ -377,9 +378,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
           HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
         }
+        CALL_BF(BF_UnpinBlock(targetBlock));
         return HT_OK; 
       }
       else{
+        CALL_BF(BF_UnpinBlock(targetBlock));
         return HT_ERROR;
       }
     }
@@ -467,6 +470,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
             HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
           }
+          CALL_BF(BF_UnpinBlock(targetBlock));
           return HT_OK; 
         }
         else if(open_files[indexDesc].globalDepth>targetData->localDepth){
@@ -505,9 +509,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
             HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
           }
+          CALL_BF(BF_UnpinBlock(targetBlock));
           return HT_OK; 
         }
         else{
+          CALL_BF(BF_UnpinBlock(targetBlock));
           return HT_ERROR;
         }
       }
@@ -596,6 +602,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
             HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
           }
+          CALL_BF(BF_UnpinBlock(targetBlock));
           return HT_OK; 
         }
         else if(open_files[indexDesc].globalDepth>targetData->localDepth){
@@ -634,9 +641,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
             HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
           }
+          CALL_BF(BF_UnpinBlock(targetBlock));
           return HT_OK; 
         }
         else{
+          CALL_BF(BF_UnpinBlock(targetBlock));
           return HT_ERROR;
         }
       }
