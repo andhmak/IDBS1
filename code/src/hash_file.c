@@ -5,6 +5,7 @@
 #include "bf.h"
 #include "hash_file.h"
 #define MAX_OPEN_FILES 20
+#define NAME_BUF 100
 
 #define INDEX_ARRAY_SIZE (BF_BLOCK_SIZE-sizeof(int))/sizeof(int)
 #define DATA_ARRAY_SIZE (BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record)
@@ -46,9 +47,8 @@ typedef struct DataBlock {
 } DataBlock;
 
 typedef struct OpenFileData {
-  int isMain;
   int mainPos;
-  char *filename;
+  char filename[NAME_BUF];
   int fileDesc;
   int globalDepth;
   int *index;
@@ -60,6 +60,7 @@ HT_ErrorCode HT_Init() {
   //insert code here
   for (int i = 0 ; i < MAX_OPEN_FILES ; i++) {
     open_files[i].fileDesc = -1;
+    strcpy(open_files[i].filename, "");
   }
   return HT_OK;
 }
@@ -144,12 +145,11 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   }
 
   *indexDesc = i;
-  open_files[i].filename = fileName;
 
   // Check if file is already open
   for (int j = 0 ; j < MAX_OPEN_FILES ; j++) {
-    if((strcmp(open_files[j].filename, fileName) == 0) && (open_files[j].isMain)) {
-      open_files[i].isMain = 0;
+    if((strcmp(open_files[j].filename, fileName) == 0) && (open_files[j].mainPos == -1)) {
+      strcpy(open_files[i].filename, fileName);
       open_files[i].mainPos = j;
       open_files[i].fileDesc = open_files[j].fileDesc;
       open_files[i].index = open_files[j].index;
@@ -158,7 +158,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   }
   
   // Else open it bring everything necessary to memory
-  open_files[i].isMain = 1;
+  strcpy(open_files[i].filename, fileName);
   open_files[i].mainPos = -1;
   int fd;
   CALL_BF(BF_OpenFile(fileName, &fd));
@@ -201,21 +201,22 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   }
 
   // Check if secondary entry
-  if (open_files[indexDesc].isMain == 0) {
+  if (open_files[indexDesc].mainPos != -1) {
     open_files[indexDesc].fileDesc = -1;
+    strcpy(open_files[indexDesc].filename, "");
     return HT_OK;
   }
 
-  // Check if file is already open
+  // Check if file is already open elsewhere as secondary entry
   for (int j = 0 ; j < MAX_OPEN_FILES ; j++) {
     if((strcmp(open_files[j].filename, open_files[indexDesc].filename) == 0) && (j != indexDesc)) {
-      open_files[j].isMain = 1;
       open_files[j].mainPos = -1;
       open_files[j].globalDepth = open_files[indexDesc].globalDepth;
       return HT_OK;
     }
   }
 
+  // Else close it completely
   int fd = open_files[indexDesc].fileDesc;
   BF_Block* block;
 
