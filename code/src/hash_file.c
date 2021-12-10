@@ -150,6 +150,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   // Map index to buckets
   int dataBlockCounter = indexBlockAmount + 1;
   for (int i = 1; i < indexBlockAmount + 1; i++){
+    printf("HT_Create: mapping %d index block to buckets\n", i);
+    fflush(stdout);
     CALL_BF(BF_GetBlock(fileDesc, i, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     for (int j = 0; i < INDEX_ARRAY_SIZE; j++){
