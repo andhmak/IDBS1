@@ -89,6 +89,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   BF_Block* block;
 
+  printf("HT_Create: Stat block variable declared OK\n");
+  fflush(stdout);
+
   CALL_BF(BF_AllocateBlock(fileDesc, block));
 
   printf("HT_Create: Stat block allocated OK\n");
