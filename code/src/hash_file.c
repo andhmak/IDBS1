@@ -15,6 +15,7 @@
   BF_ErrorCode code = call; \
   if (code != BF_OK) {         \
     BF_PrintError(code);    \
+    printf("BF level error\n");\
     return HT_ERROR;        \
   }                         \
 }
