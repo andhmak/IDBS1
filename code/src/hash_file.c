@@ -241,6 +241,8 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
 }
 
 HT_ErrorCode HT_CloseFile(int indexDesc) {
+  printf("HT_Close started OK\n");
+  fflush(stdout);
   // Check if indexDesc valid
   if ((indexDesc < 0) || (indexDesc >= MAX_OPEN_FILES) || (open_files[indexDesc].fileDesc == -1)) {
     return HT_ERROR;
