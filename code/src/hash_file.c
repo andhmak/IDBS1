@@ -88,6 +88,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   fflush(stdout);
 
   BF_Block* block;
+  BF_Block_Init(&block);
 
   printf("HT_Create: Stat block variable declared OK\n");
   fflush(stdout);
@@ -130,9 +131,10 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_UnpinBlock(block));
   }
 
+  BF_Block* dataBlock;
+  BF_Block_Init(&dataBlock);
   // Initialise buckets
   for (int i = 0; i < arraySize; i++) {
-    BF_Block* dataBlock;
     CALL_BF(BF_AllocateBlock(fileDesc, dataBlock));
     DataBlock* dataBlockData = (DataBlock*) BF_Block_GetData(dataBlock);
     dataBlockData->localDepth = depth;
@@ -197,6 +199,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   open_files[i].fileDesc = fd;
   
   BF_Block* block;
+  BF_Block_Init(&block);
   CALL_BF(BF_GetBlock(fd, 0, block));
   StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
   open_files[i].globalDepth = stat->globalDepth;
@@ -253,6 +256,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   // Else write new information to disk close it completely
   int fd = open_files[indexDesc].fileDesc;
   BF_Block* block;
+  BF_Block_Init(&block);
 
   CALL_BF(BF_GetBlock(fd, 0, block));
   StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
@@ -805,6 +809,7 @@ HT_ErrorCode HashStatistics(char* filename) {
   CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
   printf("Block amount: %d\n", blockAmount);
   BF_Block* block;
+  BF_Block_Init(&block);
   CALL_BF(BF_GetBlock(fd, 0, block));
   StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
   printf("Mimimum records per bucket: %d\n", stat->min_rec_per_bucket);

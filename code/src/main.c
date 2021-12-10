@@ -68,34 +68,7 @@ int main() {
   CALL_OR_DIE(HT_Init());
 
   int indexDesc1;
-  // Create block file
-  CALL_OR_DIE(BF_CreateFile(FILE_NAME_1));
-  int fileDesc;
-  // Open file
-  CALL_OR_DIE(BF_OpenFile(FILE_NAME_1, &fileDesc));
-
-  printf("BF create and open in HT_Create is OK\n");
-  fflush(stdout);
-
-  // Initialise statistics block
-  int arraySize = 1;
-  for (int i = 0; i < GLOBAL_DEPT_1; i++) {
-    arraySize *= 2;
-  }
-
-  printf("HT_Create: Array size calculated OK\n");
-  fflush(stdout);
-
-  BF_Block* block;
-
-  printf("HT_Create: Stat block variable declared OK\n");
-  fflush(stdout);
-
-  CALL_OR_DIE(BF_AllocateBlock(fileDesc, block));
-
-  printf("HT_Create: Stat block allocated OK\n");
-  fflush(stdout);
-  
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME_1, GLOBAL_DEPT_1));
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME_1, &indexDesc1));
   int indexDesc2;
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME_2, GLOBAL_DEPT_2));
