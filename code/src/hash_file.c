@@ -189,11 +189,12 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   // Check if file is already open
   for (int j = 0 ; j < MAX_OPEN_FILES ; j++) {
     if((strcmp(open_files[j].filename, fileName) == 0) && (open_files[j].mainPos == -1)) {
-      printf("in\n");
       strcpy(open_files[i].filename, fileName);
       open_files[i].mainPos = j;
       open_files[i].fileDesc = open_files[j].fileDesc;
       open_files[i].index = open_files[j].index;
+      printf("HT_Close ended OK\n");
+      fflush(stdout);
       return HT_OK;
     }
   }
