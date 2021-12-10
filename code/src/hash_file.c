@@ -150,25 +150,15 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   // Map index to buckets
   int dataBlockCounter = indexBlockAmount + 1;
   for (int i = 1; i < indexBlockAmount + 1; i++){
-    printf("HT_Create: mapping %d index block to buckets\n", i);
-    fflush(stdout);
     CALL_BF(BF_GetBlock(fileDesc, i, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
-    printf("HT_Create: got data\n", i);
-    fflush(stdout);
     for (int j = 0; j < INDEX_ARRAY_SIZE; j++){
-      printf("HT_Create: mapping %dth point in index with %d\n", j, dataBlockCounter);
-      fflush(stdout);
       if (dataBlockCounter < indexBlockAmount + arraySize + 1) data->index[j] = dataBlockCounter;
       else data->index[j] = -1;
       dataBlockCounter++;      
     }
-    printf("HT_Create: mapped %d index block to buckets\n", i);
-    fflush(stdout);
     BF_Block_SetDirty(block);
     CALL_BF(BF_UnpinBlock(block));
-    printf("HT_Create: unpinned %d index block\n", i);
-    fflush(stdout);
   }
 
   printf("HT_Create: Buckets mapped to index OK\n");
