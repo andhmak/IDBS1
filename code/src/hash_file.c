@@ -76,16 +76,28 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   printf("BF create and open in HT_Create is OK\n");
   fflush(stdout);
-  
+
   // Initialise statistics block
   int arraySize = 1;
   for (int i = 0; i < depth; i++) {
     arraySize *= 2;
   }
+
+  printf("HT_Create: Array size calculated OK\n");
+  fflush(stdout);
+
   BF_Block* block;
 
   CALL_BF(BF_AllocateBlock(fileDesc, block));
+
+  printf("HT_Create: Stat block allocated OK\n");
+  fflush(stdout);
+
   StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
+
+  printf("HT_Create: Stat block data taken OK\n");
+  fflush(stdout);
+
 
   stat->globalDepth = depth;
   stat->max_rec_per_bucket = 0;
