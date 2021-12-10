@@ -90,9 +90,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   BF_Block* block;
   BF_Block_Init(&block);
 
-  printf("HT_Create: Stat block variable declared OK\n");
-  fflush(stdout);
-
   CALL_BF(BF_AllocateBlock(fileDesc, block));
 
   printf("HT_Create: Stat block allocated OK\n");
@@ -131,6 +128,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_UnpinBlock(block));
   }
 
+  printf("HT_Create: Index blocks initialised OK\n");
+  fflush(stdout);
+
   BF_Block* dataBlock;
   BF_Block_Init(&dataBlock);
   // Initialise buckets
@@ -143,6 +143,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     BF_Block_SetDirty(dataBlock);
     CALL_BF(BF_UnpinBlock(dataBlock));
   }
+
+  printf("HT_Create: Buckets initialised OK\n");
+  fflush(stdout);
 
   // Map index to buckets
   int dataBlockCounter = indexBlockAmount + 1;
@@ -158,6 +161,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     BF_Block_SetDirty(block);
     CALL_BF(BF_UnpinBlock(block));
   }
+
+  printf("HT_Create: Buckets mapped to index OK\n");
+  fflush(stdout);
 
   // Close file
   CALL_BF(BF_CloseFile(fileDesc));
