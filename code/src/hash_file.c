@@ -76,6 +76,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   printf("BF create and open in HT_Create is OK\n");
   fflush(stdout);
+  
   // Initialise statistics block
   int arraySize = 1;
   for (int i = 0; i < depth; i++) {
@@ -94,6 +95,9 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   BF_Block_SetDirty(block);
   CALL_BF(BF_UnpinBlock(block));
+
+  printf("HT_Create: Stat bucket created OK\n");
+  fflush(stdout);
 
   // Initialise index blocks
   int indexBlockAmount = (arraySize - 1) / INDEX_ARRAY_SIZE + 1;
