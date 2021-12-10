@@ -74,6 +74,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   // Open file
   CALL_BF(BF_OpenFile(filename, &fileDesc));
 
+  printf("BF create and open in HT_Create is OK\n");
+  fflush(stdout);
   // Initialise statistics block
   int arraySize = 1;
   for (int i = 0; i < depth; i++) {
