@@ -66,15 +66,17 @@ HT_ErrorCode HT_Init() {
 }
 
 HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
-  //insert code here
+  // Create block file
   CALL_BF(BF_CreateFile(filename));
   int fileDesc;
+  // Open file
   CALL_BF(BF_OpenFile(filename, &fileDesc));
+
+  // Initialise statistics block
   int arraySize = 1;
   for (int i = 0; i < depth; i++) {
     arraySize *= 2;
   }
-
   BF_Block* block;
 
   CALL_BF(BF_AllocateBlock(fileDesc, block));
@@ -89,6 +91,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   BF_Block_SetDirty(block);
   CALL_BF(BF_UnpinBlock(block));
 
+  // Initialise index blocks
   int indexBlockAmount = (arraySize - 1) / INDEX_ARRAY_SIZE + 1;
   for (int i = 0; i < indexBlockAmount; i++){
     CALL_BF(BF_AllocateBlock(fileDesc, block));
@@ -103,6 +106,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_UnpinBlock(block));
   }
 
+  // Initialise buckets
   for (int i = 0; i < arraySize; i++) {
     BF_Block* dataBlock;
     CALL_BF(BF_AllocateBlock(fileDesc, dataBlock));
@@ -114,6 +118,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_UnpinBlock(dataBlock));
   }
 
+  // Map index to buckets
   int dataBlockCounter = indexBlockAmount + 1;
   for (int i = 1; i < indexBlockAmount + 1; i++){
     CALL_BF(BF_GetBlock(fileDesc, i, block));
@@ -128,6 +133,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_UnpinBlock(block));
   }
 
+  // Close file
   CALL_BF(BF_CloseFile(fileDesc));
   return HT_OK;
 }
@@ -195,7 +201,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
 }
 
 HT_ErrorCode HT_CloseFile(int indexDesc) {
-  //insert code here
+  // Check if indexDesc valid
   if ((indexDesc < 0) || (indexDesc >= MAX_OPEN_FILES) || (open_files[indexDesc].fileDesc == -1)) {
     return HT_ERROR;
   }
@@ -216,7 +222,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     }
   }
 
-  // Else close it completely
+  // Else write new information to disk close it completely
   int fd = open_files[indexDesc].fileDesc;
   BF_Block* block;
 
@@ -761,8 +767,10 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 }
 
 HT_ErrorCode HashStatistics(char* filename) {
+  // Open file
   int fd;
   CALL_BF(BF_OpenFile(filename, &fd));
+  // Print statistics stored on first block
   int blockAmount;
   CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
   printf("Block amount: %d\n", blockAmount);
@@ -773,6 +781,7 @@ HT_ErrorCode HashStatistics(char* filename) {
   printf("Average records per bucket: %d\n", stat->total_recs/stat->total_buckets);
   printf("Maximum records per bucket: %d\n", stat->max_rec_per_bucket);
   CALL_BF(BF_UnpinBlock(block));
+  // Close file
   CALL_BF(BF_CloseFile(fd));
   return HT_OK;
 }
