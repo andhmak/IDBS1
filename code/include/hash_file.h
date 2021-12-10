@@ -68,5 +68,6 @@ HT_ErrorCode HT_PrintAllEntries(
 	int *id 				/* τιμή του πεδίου κλειδιού προς αναζήτηση */
 	);
 
+HT_ErrorCode HashStatistics(char* filename);
 
 #endif // HASH_FILE_H
