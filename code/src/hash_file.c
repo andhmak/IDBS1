@@ -305,6 +305,8 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     }
   }
   BF_Block_Destroy(&block);
+  printf("HT_Close memory moved to disk OK\n");
+  fflush(stdout);
 
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
   free(open_files[indexDesc].index);
