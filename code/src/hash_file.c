@@ -332,7 +332,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
       newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-      CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
+      CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&(targetData->nextBlock)));
       newBlockData->localDepth = targetData->localDepth;
       newBlockData->index[0] = record;
       newBlockData->lastEmpty = 1;
