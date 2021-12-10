@@ -64,11 +64,8 @@ const char* cities[] = {
   }
 
 int main() {
-  printf("over here\n");
   BF_Init(LRU);
-  printf("here\n");
   CALL_OR_DIE(HT_Init());
-  printf("there\n");
 
   int indexDesc1;
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME_1, GLOBAL_DEPT_1));
