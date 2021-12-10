@@ -156,7 +156,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     printf("HT_Create: got data\n", i);
     fflush(stdout);
-    for (int j = 0; i < INDEX_ARRAY_SIZE; j++){
+    for (int j = 0; j < INDEX_ARRAY_SIZE; j++){
       printf("HT_Create: mapping %dth point in index with %d\n", j, dataBlockCounter);
       fflush(stdout);
       if (dataBlockCounter < indexBlockAmount + arraySize + 1) data->index[j] = dataBlockCounter;
