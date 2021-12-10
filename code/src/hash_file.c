@@ -62,6 +62,7 @@ HT_ErrorCode HT_Init() {
     open_files[i].fileDesc = -1;
     strcpy(open_files[i].filename, "");
   }
+  printf("HT_Init ended OK");
   return HT_OK;
 }
 
@@ -135,6 +136,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   // Close file
   CALL_BF(BF_CloseFile(fileDesc));
+  printf("HT_Create ended OK");
   return HT_OK;
 }
 
@@ -197,6 +199,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
       data = (IndexBlock*) BF_Block_GetData(block);
     }
   }
+  printf("HT_Open ended OK");
   return HT_OK;
 }
 
@@ -265,6 +268,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
   free(open_files[indexDesc].index);
   open_files[indexDesc].fileDesc = -1;
+  printf("HT_Close ended OK");
   return HT_OK;
 }
 
