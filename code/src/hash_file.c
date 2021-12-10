@@ -131,17 +131,15 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   printf("HT_Create: Index blocks initialised OK\n");
   fflush(stdout);
 
-  BF_Block* dataBlock;
-  BF_Block_Init(&dataBlock);
   // Initialise buckets
   for (int i = 0; i < arraySize; i++) {
-    CALL_BF(BF_AllocateBlock(fileDesc, dataBlock));
-    DataBlock* dataBlockData = (DataBlock*) BF_Block_GetData(dataBlock);
+    CALL_BF(BF_AllocateBlock(fileDesc, block));
+    DataBlock* dataBlockData = (DataBlock*) BF_Block_GetData(block);
     dataBlockData->localDepth = depth;
     dataBlockData->lastEmpty = 0;
     dataBlockData->nextBlock = -1;
-    BF_Block_SetDirty(dataBlock);
-    CALL_BF(BF_UnpinBlock(dataBlock));
+    BF_Block_SetDirty(block);
+    CALL_BF(BF_UnpinBlock(block));
   }
 
   printf("HT_Create: Buckets initialised OK\n");
@@ -163,6 +161,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   printf("HT_Create: Buckets mapped to index OK\n");
   fflush(stdout);
+
+  BF_Block_Destroy(&block);
 
   // Close file
   CALL_BF(BF_CloseFile(fileDesc));
@@ -231,6 +231,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
       data = (IndexBlock*) BF_Block_GetData(block);
     }
   }
+  BF_Block_Destroy(&block);
   printf("HT_Open ended OK\n");
   fflush(stdout);
   return HT_OK;
@@ -298,6 +299,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
       data = (IndexBlock*) BF_Block_GetData(block);
     }
   }
+  BF_Block_Destroy(&block);
 
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
   free(open_files[indexDesc].index);
@@ -821,6 +823,7 @@ HT_ErrorCode HashStatistics(char* filename) {
   printf("Average records per bucket: %d\n", stat->total_recs/stat->total_buckets);
   printf("Maximum records per bucket: %d\n", stat->max_rec_per_bucket);
   CALL_BF(BF_UnpinBlock(block));
+  BF_Block_Destroy(&block);
   // Close file
   CALL_BF(BF_CloseFile(fd));
   return HT_OK;
