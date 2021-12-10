@@ -115,7 +115,7 @@ int main() {
   }
 
   printf("RUN PrintAllEntries with ID\n");
-  int id = rand() % RECORDS_NUM;
+  int id = 5;
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, &id));
   printf("RUN PrintAllEntries without ID\n");
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, NULL));
