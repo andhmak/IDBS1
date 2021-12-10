@@ -15,7 +15,6 @@
   BF_ErrorCode code = call; \
   if (code != BF_OK) {         \
     BF_PrintError(code);    \
-    printf("BF level error\n");\
     return HT_ERROR;        \
   }                         \
 }
@@ -172,6 +171,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 }
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
+  printf("HT_Open started OK\n");
+  fflush(stdout);
   // Check for empty position in open files array
   int i;
   for (i = 0 ; i < MAX_OPEN_FILES ; i++) {
