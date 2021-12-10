@@ -261,6 +261,8 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   // Check if file is already open elsewhere as secondary entry
   for (int j = 0 ; j < MAX_OPEN_FILES ; j++) {
     if((strcmp(open_files[j].filename, open_files[indexDesc].filename) == 0) && (j != indexDesc)) {
+      open_files[indexDesc].fileDesc = -1;
+      strcpy(open_files[indexDesc].filename, "");
       open_files[j].mainPos = -1;
       open_files[j].globalDepth = open_files[indexDesc].globalDepth;
       printf("HT_Close was main and ended OK\n");
@@ -319,6 +321,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
   free(open_files[indexDesc].index);
   open_files[indexDesc].fileDesc = -1;
+  strcpy(open_files[indexDesc].filename, "");
   printf("HT_Close ended OK\n");
   fflush(stdout);
   return HT_OK;
