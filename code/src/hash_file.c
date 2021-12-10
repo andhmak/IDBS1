@@ -193,7 +193,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
       open_files[i].mainPos = j;
       open_files[i].fileDesc = open_files[j].fileDesc;
       open_files[i].index = open_files[j].index;
-      printf("HT_Close ended OK\n");
+      printf("HT_Open ended OK\n");
       fflush(stdout);
       return HT_OK;
     }
