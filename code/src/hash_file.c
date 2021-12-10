@@ -253,6 +253,8 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   if (open_files[indexDesc].mainPos != -1) {
     open_files[indexDesc].fileDesc = -1;
     strcpy(open_files[indexDesc].filename, "");
+    printf("HT_Close was secondary and ended OK\n");
+    fflush(stdout);
     return HT_OK;
   }
 
@@ -261,6 +263,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     if((strcmp(open_files[j].filename, open_files[indexDesc].filename) == 0) && (j != indexDesc)) {
       open_files[j].mainPos = -1;
       open_files[j].globalDepth = open_files[indexDesc].globalDepth;
+      printf("HT_Close was main and ended OK\n");
       return HT_OK;
     }
   }
