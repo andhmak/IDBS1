@@ -291,7 +291,9 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
   if (targetData->lastEmpty != DATA_ARRAY_SIZE)
     targetData->index[targetData->lastEmpty].id = record.id;
-    memcpy(targetData->index[targetData->lastEmpty]., names[r], strlen(names[r]) + 1);
+    memcpy(targetData->index[targetData->lastEmpty].name, record.name, strlen(record.name) + 1);
+    memcpy(targetData->index[targetData->lastEmpty].surname, record.surname, strlen(record.surname) + 1);
+    memcpy(targetData->index[targetData->lastEmpty].city, record.city, strlen(record.city) + 1);
   return HT_OK;
 }
 
