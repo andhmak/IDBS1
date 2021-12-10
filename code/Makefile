@@ -1,4 +1,4 @@
-main: hash_file.o main.o
+main: 
 	@echo " Compile main ...";
 	gcc -I ./include/ -L ./lib/ -Wl,-rpath,./lib/ ./src/main.c ./src/hash_file.c -lbf -o ./build/runner -O2
 
