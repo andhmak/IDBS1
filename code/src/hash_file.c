@@ -15,6 +15,7 @@
   BF_ErrorCode code = call; \
   if (code != BF_OK) {         \
     BF_PrintError(code);    \
+    printf("%d",code);    \
     return HT_ERROR;        \
   }                         \
 }
@@ -293,15 +294,19 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
       data->nextBlock = blockAmount++;
       BF_Block_SetDirty(block);
       CALL_BF(BF_UnpinBlock(block));
-      CALL_BF(BF_AllocateBlock(fd, block));
-      data = (IndexBlock*) BF_Block_GetData(block);
-      data->nextBlock = -1;
+      if (j < indexSize - 1) {
+        CALL_BF(BF_AllocateBlock(fd, block));
+        data = (IndexBlock*) BF_Block_GetData(block);
+        data->nextBlock = -1;
+      }
     }
     else {
       BF_Block_SetDirty(block);
       CALL_BF(BF_UnpinBlock(block));
-      CALL_BF(BF_GetBlock(fd, nextBlock, block));
-      data = (IndexBlock*) BF_Block_GetData(block);
+      if (j < indexSize - 1) {
+        CALL_BF(BF_GetBlock(fd, nextBlock, block));
+        data = (IndexBlock*) BF_Block_GetData(block);
+      }
     }
   }
   BF_Block_Destroy(&block);
