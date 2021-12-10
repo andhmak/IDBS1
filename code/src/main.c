@@ -6,7 +6,8 @@
 #include "hash_file.h"
 
 #define RECORDS_NUM 1000 // you can change it if you want
-#define GLOBAL_DEPT 2 // you can change it if you want
+#define GLOBAL_DEPT_1 2 // you can change it if you want
+#define GLOBAL_DEPT_2 10 // you can change it if you want
 #define FILE_NAME_1 "data1.db"
 #define FILE_NAME_2 "data2.db"
 
@@ -67,11 +68,14 @@ int main() {
   
   CALL_OR_DIE(HT_Init());
 
-  int indexDesc;
-  CALL_OR_DIE(HT_CreateIndex(FILE_NAME_1, GLOBAL_DEPT));
-  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_1, &indexDesc)); 
-  CALL_OR_DIE(HT_CreateIndex(FILE_NAME_2, GLOBAL_DEPT));
-  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_1, &indexDesc)); 
+  int indexDesc1;
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME_1, GLOBAL_DEPT_1));
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_1, &indexDesc1));
+  int indexDesc2;
+  CALL_OR_DIE(HT_CreateIndex(FILE_NAME_2, GLOBAL_DEPT_2));
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc2)); 
+  int indexDesc3;
+  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc3)); 
 
   Record record;
   srand(12569874);
@@ -87,8 +91,16 @@ int main() {
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
-    CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+    CALL_OR_DIE(HT_InsertEntry(indexDesc1, record));
   }
+
+  printf("RUN PrintAllEntries with ID\n");
+  int id = rand() % RECORDS_NUM;
+  CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, &id));
+  printf("RUN PrintAllEntries without ID\n");
+  CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, NULL));
+
+  printf("Insert Entries with same ID\n");
   for (int id = 0; id < RECORDS_NUM; ++id) {
     // create a record
     record.id = 5;
@@ -99,15 +111,21 @@ int main() {
     r = rand() % 10;
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
-    CALL_OR_DIE(HT_InsertEntry(indexDesc, record));
+    CALL_OR_DIE(HT_InsertEntry(indexDesc2, record));
   }
 
-  printf("RUN PrintAllEntries\n");
+  printf("RUN PrintAllEntries with ID\n");
   int id = rand() % RECORDS_NUM;
-  CALL_OR_DIE(HT_PrintAllEntries(indexDesc, &id));
-  //CALL_OR_DIE(HT_PrintAllEntries(indexDesc, NULL));
+  CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, &id));
+  printf("RUN PrintAllEntries without ID\n");
+  CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, NULL));
 
 
-  CALL_OR_DIE(HT_CloseFile(indexDesc));
+  CALL_OR_DIE(HT_CloseFile(indexDesc1));
+  CALL_OR_DIE(HT_CloseFile(indexDesc2));
+  CALL_OR_DIE(HT_CloseFile(indexDesc3));
+  printf("RUN HashStatistics\n");
+  CALL_OR_DIE(HashStatistics(FILE_NAME_1));
+  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
   BF_Close();
 }
