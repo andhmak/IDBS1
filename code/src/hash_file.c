@@ -983,10 +983,14 @@ HT_ErrorCode HashStatistics(char* filename) {
 
     printf("HashStatistics: file not in memory: amount and average calculated OK\n");
     BF_Block* indexBlock;
+    printf("51");
     BF_Block_Init(&indexBlock);
+    printf("52");
     CALL_BF(BF_GetBlock(fd, 1, indexBlock));
+    printf("53");
     IndexBlock* index = (IndexBlock*) BF_Block_GetData(indexBlock);
     int nextIndexBlock;
+    printf("54");
     do {
       printf("new index block");
       for (int j = 0 ; j < INDEX_ARRAY_SIZE ; j++) {
