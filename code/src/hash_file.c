@@ -30,8 +30,6 @@ int hash_func(int x) {
 }
 
 typedef struct StatBlock {
-  int min_rec_per_bucket;
-  int max_rec_per_bucket;
   int total_recs;
   int total_buckets;
   int globalDepth;
@@ -104,8 +102,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
 
   stat->globalDepth = depth;
-  stat->max_rec_per_bucket = 0;
-  stat->min_rec_per_bucket = 0;
   stat->total_buckets = arraySize;
   stat->total_recs = 0;
 
@@ -905,6 +901,16 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 
 HT_ErrorCode HashStatistics(char* filename) {
   // Open file
+  int i;
+  for (int i = 0 ; i < MAX_OPEN_FILES ; i++) {
+    if((strcmp(open_files[i].filename, filename) == 0) && (open_files[i].mainPos == -1)) {
+      break;
+    }
+  }
+  if (i != MAX_OPEN_FILES) {
+    
+  }
+
   int fd;
   CALL_BF(BF_OpenFile(filename, &fd));
   // Print statistics stored on first block
@@ -915,9 +921,7 @@ HT_ErrorCode HashStatistics(char* filename) {
   BF_Block_Init(&block);
   CALL_BF(BF_GetBlock(fd, 0, block));
   StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
-  printf("Mimimum records per bucket: %d\n", stat->min_rec_per_bucket);
   printf("Average records per bucket: %d\n", stat->total_recs/stat->total_buckets);
-  printf("Maximum records per bucket: %d\n", stat->max_rec_per_bucket);
   CALL_BF(BF_UnpinBlock(block));
   BF_Block_Destroy(&block);
   // Close file
