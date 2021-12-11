@@ -300,13 +300,17 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     }
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
-      data->nextBlock = blockAmount++;
-      BF_Block_SetDirty(block);
-      CALL_BF(BF_UnpinBlock(block));
       if (j < indexSize - 1) {
+        data->nextBlock = blockAmount++;
+        BF_Block_SetDirty(block);
+        CALL_BF(BF_UnpinBlock(block));
         CALL_BF(BF_AllocateBlock(fd, block));
         data = (IndexBlock*) BF_Block_GetData(block);
         data->nextBlock = -1;
+      }
+      else {
+        BF_Block_SetDirty(block);
+        CALL_BF(BF_UnpinBlock(block));
       }
     }
     else {
