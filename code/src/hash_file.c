@@ -369,8 +369,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       targetData->lastEmpty++;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
-      BF_Block_Destroy(&targetBlock);
+
+      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
+      StatBlock* statData = BF_Block_GetData(targetData);
+      statData->total_recs++;
+      BF_Block_SetDirty(targetBlock);
+      CALL_BF(BF_UnpinBlock(targetBlock));
       
+      BF_Block_Destroy(&targetBlock);
       return HT_OK;
     }
     else{
@@ -395,6 +401,13 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       BF_Block_SetDirty(newBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
       CALL_BF(BF_UnpinBlock(newBlock));
+
+      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
+      StatBlock* statData = BF_Block_GetData(targetData);
+      statData->total_recs++;
+      BF_Block_SetDirty(targetBlock);
+      CALL_BF(BF_UnpinBlock(targetBlock));
+
       BF_Block_Destroy(&targetBlock);
       BF_Block_Destroy(&newBlock);
       return HT_OK;
@@ -412,6 +425,13 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       targetData->lastEmpty++;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
+
+      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
+      StatBlock* statData = BF_Block_GetData(targetData);
+      statData->total_recs++;
+      BF_Block_SetDirty(targetBlock);
+      CALL_BF(BF_UnpinBlock(targetBlock));
+
       BF_Block_Destroy(&targetBlock);
       return HT_OK;
     }
@@ -462,12 +482,27 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       BF_Block_SetDirty(newBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
       CALL_BF(BF_UnpinBlock(newBlock));
+
+      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
+      StatBlock* statData = BF_Block_GetData(targetData);
+      statData->total_recs++;
+      BF_Block_SetDirty(targetBlock);
+      CALL_BF(BF_UnpinBlock(targetBlock));
+
       BF_Block_Destroy(&targetBlock);
       BF_Block_Destroy(&newBlock);
       return HT_OK;
     }
     else{
       //split
+
+      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
+      StatBlock* statData = BF_Block_GetData(targetData);
+      statData->total_recs++;
+      statData->total_buckets++;
+      BF_Block_SetDirty(targetBlock);
+      CALL_BF(BF_UnpinBlock(targetBlock));
+
       printf("5\n");
       //making an array with all the entries of this block
       Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));  //1 for the new entry and all the entries of the block
@@ -517,6 +552,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
         }
         free(entryArray);
+
+
         return HT_OK; 
       }
       else if(open_files[indexDesc].globalDepth>targetData->localDepth){
