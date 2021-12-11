@@ -947,9 +947,7 @@ HT_ErrorCode HashStatistics(char* filename) {
     printf("open_files[i].globalDepth: %d\n", open_files[i].globalDepth);
     printf("indexsize: %d\n", indexSize);
     for (int j = 0 ; j < indexSize ; j++) {
-//      printf("j: %d\n", j);
       CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
-//      printf("got j\n");
       DataBlock* data = (DataBlock*) BF_Block_GetData(block);
       max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
       min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
@@ -990,6 +988,7 @@ HT_ErrorCode HashStatistics(char* filename) {
     IndexBlock* index = (IndexBlock*) BF_Block_GetData(indexBlock);
     int nextIndexBlock;
     do {
+      printf("new index block");
       for (int j = 0 ; j < INDEX_ARRAY_SIZE ; j++) {
         CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
         DataBlock* data = (DataBlock*) BF_Block_GetData(block);
