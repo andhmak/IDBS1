@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "bf.h"
 #include "hash_file.h"
@@ -9,6 +10,7 @@
 
 #define INDEX_ARRAY_SIZE (BF_BLOCK_SIZE-sizeof(int))/sizeof(int)
 #define DATA_ARRAY_SIZE (BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record)
+#define MAX_DEPTH 1
 
 #define CALL_BF(call)       \
 {                           \
@@ -327,13 +329,13 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   return HT_OK;
 }
 
-//compares the hash value of first entry to all others
+//compares the ID value of first entry to all others
 //if all are the same returns true
 //else false
-int sameHash(Record *records){
-  int hash=hash_func(records[0].id);
+int sameID(Record *records){
+  int hash=records[0].id;
   for (int i=1;i<(sizeof(records)/sizeof(Record)); i++){
-    if (hash != hash_func(records[i].id)){
+    if (hash != records[i].id){
       return 0;
     }
   }
@@ -345,6 +347,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   
   int hashID = (hash_func(record.id) >> (8*sizeof(int) - open_files[indexDesc].globalDepth));
   BF_Block *targetBlock;
+  BF_Block_Init(&targetBlock);
   CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
   DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
@@ -366,11 +369,13 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       targetData->lastEmpty++;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
+      BF_Block_Destroy(&targetBlock);
       return HT_OK;
     }
-    else if(sameHash(entryArray)){
+    else if(sameID(entryArray)){
       //make next block
       BF_Block *newBlock;
+      BF_Block_Init(&newBlock);
       DataBlock *newBlockData;
       CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
       newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
@@ -388,11 +393,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       BF_Block_SetDirty(newBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
       CALL_BF(BF_UnpinBlock(newBlock));
+      BF_Block_Destroy(&targetBlock);
+      BF_Block_Destroy(&newBlock);
       return HT_OK;
     }
-    else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
+    else if(targetData->localDepth==MAX_DEPTH){    //reached MAX depth
       //make next block
       BF_Block *newBlock;
+      BF_Block_Init(&newBlock);
       DataBlock *newBlockData;
       CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
       newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
@@ -410,6 +418,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       BF_Block_SetDirty(newBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
       CALL_BF(BF_UnpinBlock(newBlock));
+      BF_Block_Destroy(&targetBlock);
+      BF_Block_Destroy(&newBlock);
       return HT_OK;
     }
     else{
@@ -417,26 +427,23 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       if(open_files[indexDesc].globalDepth==targetData->localDepth){
         open_files[indexDesc].globalDepth++;
 
-        int newIndex[2 << open_files[indexDesc].globalDepth];
-        for (int i=0,j=0;i<2^(open_files[indexDesc].globalDepth-1) && j<2^(open_files[indexDesc].globalDepth);i++,j++){
+        int *newIndex = malloc((2<<open_files[indexDesc].globalDepth)*sizeof(int));
+        for (int i=0,j=0;i<(2<<(open_files[indexDesc].globalDepth-1)) && j<(2<<(open_files[indexDesc].globalDepth));i++,j+=2){
           newIndex[j]=open_files[indexDesc].index[i];
           newIndex[j+1]=open_files[indexDesc].index[i];
         }
+        
+        //open_files[indexDesc].index[(2*hashID)+1] will have the same block as in the last index but it will be empty
+        targetData->localDepth = open_files[indexDesc].globalDepth;
+        targetData->lastEmpty = 0;
+        targetData->nextBlock = -1;
+
+        BF_Block_SetDirty(targetBlock);
         CALL_BF(BF_UnpinBlock(targetBlock));
 
         BF_Block *newBlock;
+        BF_Block_Init(newBlock);
         DataBlock *newBlockData;
-        CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
-        newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
-
-        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&open_files[indexDesc].index[2*hashID]));
-        newBlockData->localDepth = open_files[indexDesc].globalDepth;
-        newBlockData->lastEmpty = 0;
-        newBlockData->nextBlock = -1;
-
-        BF_Block_SetDirty(newBlock);
-        CALL_BF(BF_UnpinBlock(newBlock));
-        
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
@@ -447,6 +454,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
         BF_Block_SetDirty(newBlock);
         CALL_BF(BF_UnpinBlock(newBlock));
+        BF_Block_Destroy(&newBlock);
 
         free(open_files[indexDesc].index);
         open_files[indexDesc].index=newIndex;
@@ -456,39 +464,37 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         return HT_OK; 
       }
       else if(open_files[indexDesc].globalDepth>targetData->localDepth){
-        int firstIDtoBlock=hashID-(hashID%(2^targetData->localDepth));
+        int firstIDtoBlock=((hashID >> targetData->localDepth) << targetData->localDepth);
         
-        int dataBlock1,dataBlock2;
+        int dataBlock;
         BF_Block *newBlock;
+        BF_Block_Init(&newBlock);
         DataBlock *newBlockData;
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&dataBlock1));
-        newBlockData->localDepth = targetData->localDepth+1;
-        newBlockData->lastEmpty = 0;
-        newBlockData->nextBlock = -1;
-        
-        CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
-        newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
-
-        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&dataBlock2));
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&dataBlock));
         newBlockData->localDepth = targetData->localDepth+1;
         newBlockData->lastEmpty = 0;
         newBlockData->nextBlock = -1;
         
         CALL_BF(BF_UnpinBlock(targetBlock));
-        for (int i=firstIDtoBlock;i<firstIDtoBlock+2^(targetData->localDepth-1);i++){
-          open_files[indexDesc].index[i]=dataBlock1;
-        }
-        for (int i=firstIDtoBlock+2^(targetData->localDepth-1);i<firstIDtoBlock+2^(targetData->localDepth);i++){
-          open_files[indexDesc].index[i]=dataBlock2;
+        for (int i=firstIDtoBlock;i<firstIDtoBlock+(2<<(targetData->localDepth-1));i++){
+          open_files[indexDesc].index[i]=dataBlock;
         }
 
-        BF_Block_SetDirty(dataBlock1);
-        BF_Block_SetDirty(dataBlock2);
-        CALL_BF(BF_UnpinBlock(dataBlock1));
-        CALL_BF(BF_UnpinBlock(dataBlock2));
+        //the second half of the hashIDs will have the same block as in the last index but it will be empty
+        targetData->localDepth++;
+        targetData->lastEmpty = 0;
+        targetData->nextBlock = -1;
+
+        BF_Block_SetDirty(targetBlock);
+        CALL_BF(BF_UnpinBlock(targetBlock));
+        BF_Block_Destroy(&targetBlock);
+
+        BF_Block_SetDirty(newBlock);
+        CALL_BF(BF_UnpinBlock(newBlock));
+        BF_Block_Destroy(&newBlock);
 
         for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
           HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
@@ -497,6 +503,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       }
       else{
         CALL_BF(BF_UnpinBlock(targetBlock));
+        BF_Block_Destroy(&targetBlock);
         return HT_ERROR;
       }
     }
@@ -532,9 +539,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         targetData->lastEmpty++;
         BF_Block_SetDirty(targetBlock);
         CALL_BF(BF_UnpinBlock(targetBlock));
+        BF_Block_Destroy(&targetBlock);
         return HT_OK;
       }
-      else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
+      else if(targetData->localDepth==MAX_DEPTH){    //reached MAX depth
         //insert
         targetData->index[targetData->lastEmpty].id = record.id;
         strcpy(targetData->index[targetData->lastEmpty].name,record.name);
@@ -543,6 +551,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         targetData->lastEmpty++;
         BF_Block_SetDirty(targetBlock);
         CALL_BF(BF_UnpinBlock(targetBlock));
+        BF_Block_Destroy(&targetBlock);
         return HT_OK;
       }
       else{
@@ -645,6 +654,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       if(sameHash(entryArray)){
         //new block
         BF_Block *newBlock;
+        BF_Block_Init(&newBlock);
         DataBlock *newBlockData;
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
@@ -662,11 +672,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         BF_Block_SetDirty(newBlock);
         CALL_BF(BF_UnpinBlock(targetBlock));
         CALL_BF(BF_UnpinBlock(newBlock));
+        BF_Block_Destroy(&targetBlock);
+        BF_Block_Destroy(&newBlock);
         return HT_OK;
       }
-      else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
+      else if(targetData->localDepth==MAX_DEPTH){    //reached MAX depth
         //new block
         BF_Block *newBlock;
+        BF_Block_Init(&newBlock);
         DataBlock *newBlockData;
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
@@ -684,6 +697,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         BF_Block_SetDirty(newBlock);
         CALL_BF(BF_UnpinBlock(targetBlock));
         CALL_BF(BF_UnpinBlock(newBlock));
+        BF_Block_Destroy(&targetBlock);
+        BF_Block_Destroy(&newBlock);
         return HT_OK;
       }
       else{
