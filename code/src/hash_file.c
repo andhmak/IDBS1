@@ -8,8 +8,8 @@
 #define MAX_OPEN_FILES 20
 #define NAME_BUF 100
 
-#define INDEX_ARRAY_SIZE (BF_BLOCK_SIZE-sizeof(int))/sizeof(int)
-#define DATA_ARRAY_SIZE (BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record)
+#define INDEX_ARRAY_SIZE ((BF_BLOCK_SIZE-sizeof(int))/sizeof(int))
+#define DATA_ARRAY_SIZE ((BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record))
 #define MAX_DEPTH 1
 
 #define CALL_BF(call)       \
