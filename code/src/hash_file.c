@@ -116,9 +116,11 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_AllocateBlock(fileDesc, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     if (i+1 < indexBlockAmount) {
+      printf("%dth index block has next %d\n", i, i+2);
       data->nextBlock = i+2;
     }
     else {
+      printf("%dth index block has next %d\n", i, -1);
       data->nextBlock = -1;
     }
     BF_Block_SetDirty(block);
@@ -1012,6 +1014,7 @@ HT_ErrorCode HashStatistics(char* filename) {
       fflush(stdout);
       nextIndexBlock = index->nextBlock;
       CALL_BF(BF_UnpinBlock(indexBlock));
+      printf("nextIndexBlock = %d\n", nextIndexBlock);
       if (nextIndexBlock != -1) {
         CALL_BF(BF_GetBlock(fd, nextIndexBlock, indexBlock));
         index = (IndexBlock*) BF_Block_GetData(indexBlock);
