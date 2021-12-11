@@ -17,7 +17,6 @@
   BF_ErrorCode code = call; \
   if (code != BF_OK) {         \
     BF_PrintError(code);    \
-    printf("%d",code);    \
     return HT_ERROR;        \
   }                         \
 }
@@ -992,6 +991,8 @@ HT_ErrorCode HashStatistics(char* filename) {
       printf("new index block\n");
       fflush(stdout);
       for (int j = 0 ; (j < INDEX_ARRAY_SIZE) && (index->index[j] != -1); j++) {
+        printf("%dth position showing %d\n", j, index->index[j]);
+        fflush(stdout);
         CALL_BF(BF_GetBlock(fd, index->index[j], block));
         DataBlock* data = (DataBlock*) BF_Block_GetData(block);
         max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
