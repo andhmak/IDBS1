@@ -359,7 +359,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){
       //insert
-      targetData->index[targetData->lastEmpty] = record;
+      targetData->index[targetData->lastEmpty].id = record.id;
+      strcpy(targetData->index[targetData->lastEmpty].name,record.name);
+      strcpy(targetData->index[targetData->lastEmpty].surname,record.surname);
+      strcpy(targetData->index[targetData->lastEmpty].city,record.city);
       targetData->lastEmpty++;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
@@ -374,7 +377,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
       CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
       newBlockData->localDepth = targetData->localDepth;
-      newBlockData->index[0] = record;
+      newBlockData->index[0].id = record.id;
+      strcpy(newBlockData->index[0].name,record.name);
+      strcpy(newBlockData->index[0].surname,record.surname);
+      strcpy(newBlockData->index[0].city,record.city);
       newBlockData->lastEmpty = 1;
       newBlockData->nextBlock = -1;
 
@@ -393,7 +399,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
       CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
       newBlockData->localDepth = targetData->localDepth;
-      newBlockData->index[0] = record;
+      newBlockData->index[0].id = record.id;
+      strcpy(newBlockData->index[0].name,record.name);
+      strcpy(newBlockData->index[0].surname,record.surname);
+      strcpy(newBlockData->index[0].city,record.city);
       newBlockData->lastEmpty = 1;
       newBlockData->nextBlock = -1;
 
@@ -517,7 +526,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){ //last block has space
       if(sameHash(entryArray)){
         //insert
-        targetData->index[targetData->lastEmpty] = record;
+        targetData->index[targetData->lastEmpty].id = record.id;
+        strcpy(targetData->index[targetData->lastEmpty].name,record.name);
+        strcpy(targetData->index[targetData->lastEmpty].surname,record.surname);
+        strcpy(targetData->index[targetData->lastEmpty].city,record.city);
         targetData->lastEmpty++;
         BF_Block_SetDirty(targetBlock);
         CALL_BF(BF_UnpinBlock(targetBlock));
@@ -525,7 +537,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       }
       else if(targetData->localDepth==8*sizeof(int)){    //reached MAX depth
         //insert
-        targetData->index[targetData->lastEmpty] = record;
+        targetData->index[targetData->lastEmpty].id = record.id;
+        strcpy(targetData->index[targetData->lastEmpty].name,record.name);
+        strcpy(targetData->index[targetData->lastEmpty].surname,record.surname);
+        strcpy(targetData->index[targetData->lastEmpty].city,record.city);
         targetData->lastEmpty++;
         BF_Block_SetDirty(targetBlock);
         CALL_BF(BF_UnpinBlock(targetBlock));
@@ -639,7 +654,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
         CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
         newBlockData->localDepth = targetData->localDepth;
-        newBlockData->index[0] = record;
+        newBlockData->index[0].id = record.id;
+        strcpy(newBlockData->index[0].name,record.name);
+        strcpy(newBlockData->index[0].surname,record.surname);
+        strcpy(newBlockData->index[0].city,record.city);
         newBlockData->lastEmpty = 1;
         newBlockData->nextBlock = -1;
 
@@ -658,7 +676,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
         CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
         newBlockData->localDepth = targetData->localDepth;
-        newBlockData->index[0] = record;
+        newBlockData->index[0].id = record.id;
+        strcpy(newBlockData->index[0].name,record.name);
+        strcpy(newBlockData->index[0].surname,record.surname);
+        strcpy(newBlockData->index[0].city,record.city);
         newBlockData->lastEmpty = 1;
         newBlockData->nextBlock = -1;
 
