@@ -982,17 +982,23 @@ HT_ErrorCode HashStatistics(char* filename) {
     CALL_BF(BF_UnpinBlock(block));
 
     printf("HashStatistics: file not in memory: amount and average calculated OK\n");
+    fflush(stdout);
     BF_Block* indexBlock;
     printf("51");
+    fflush(stdout);
     BF_Block_Init(&indexBlock);
     printf("52");
+    fflush(stdout);
     CALL_BF(BF_GetBlock(fd, 1, indexBlock));
     printf("53");
+    fflush(stdout);
     IndexBlock* index = (IndexBlock*) BF_Block_GetData(indexBlock);
     int nextIndexBlock;
     printf("54");
+    fflush(stdout);
     do {
       printf("new index block");
+      fflush(stdout);
       for (int j = 0 ; j < INDEX_ARRAY_SIZE ; j++) {
         CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
         DataBlock* data = (DataBlock*) BF_Block_GetData(block);
