@@ -232,7 +232,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   int j = 0;
   do {
     for (int k = 0 ; (k < INDEX_ARRAY_SIZE) && (j < indexSize); k++, j++) {
-      printf("Opening index %d\n", j);
+      printf("Opening index %d with %d\n", j, data->index[k]);
       open_files[i].index[j] = data->index[k];
     }
     nextBlock = data->nextBlock;
