@@ -332,7 +332,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
 //compares the ID value of first entry to all others
 //if all are the same returns true
 //else false
-int sameID(Record *records){
+/*int sameID(Record *records){
   int hash=records[0].id;
   for (int i=1;i<(sizeof(records)/sizeof(Record)); i++){
     if (hash != records[i].id){
@@ -340,7 +340,7 @@ int sameID(Record *records){
     }
   }
   return 1;
-}
+}*/
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
@@ -351,18 +351,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
   DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
-  if(targetData->nextBlock!=-1){
-
-    int blockCount=1;
-    while(targetData->nextBlock!=-1){
-      int next = targetData->nextBlock;
-      CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
-      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,next,targetBlock));
-      targetData = (DataBlock *)BF_Block_GetData(targetBlock);
-      blockCount++;
-    }
-    //the last block is still pined
-
+  if(targetData->nextBlock!=-1){ //overflow
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){ //last block has space
       //insert
       targetData->index[targetData->lastEmpty].id = record.id;
@@ -373,6 +362,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
       BF_Block_Destroy(&targetBlock);
+      
       return HT_OK;
     }
     else{
@@ -401,14 +391,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       return HT_OK;
     }
   }
-  if(targetData->nextBlock==-1){  //only one block
-
-    //making an array with all the entries of this block
-    Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));  //1 for the new entry and all the entries of the block
-    entryArray[0] = record;
-    for (int i = 0; i < targetData->lastEmpty; i++){
-      entryArray[i+1]=targetData->index[i];
-    }
+  else/*if(targetData->nextBlock==-1)*/{  //only one block
 
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){
       //insert
@@ -474,6 +457,14 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     }
     else{
       //split
+
+      //making an array with all the entries of this block
+      Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));  //1 for the new entry and all the entries of the block
+      entryArray[0] = record;
+      for (int i = 0; i < targetData->lastEmpty; i++){
+        entryArray[i+1]=targetData->index[i];
+      }
+
       if(open_files[indexDesc].globalDepth==targetData->localDepth){
         open_files[indexDesc].globalDepth++;
 
