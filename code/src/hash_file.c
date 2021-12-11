@@ -924,6 +924,12 @@ HT_ErrorCode HashStatistics(char* filename) {
       DataBlock* data = (DataBlock*) BF_Block_GetData(block);
       max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
       min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
+      while (data->nextBlock != -1) {
+        CALL_BF(BF_GetBlock(open_files[i].fileDesc, data->nextBlock, block));
+        DataBlock* data = (DataBlock*) BF_Block_GetData(block);
+        max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
+        min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
+      }
     }
     BF_Block_Destroy(&block);
   }
