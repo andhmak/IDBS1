@@ -1008,6 +1008,8 @@ HT_ErrorCode HashStatistics(char* filename) {
           CALL_BF(BF_UnpinBlock(block));
         }
       }
+      printf("out of the loop\n");
+      fflush(stdout);
       nextIndexBlock = index->nextBlock;
       CALL_BF(BF_UnpinBlock(indexBlock));
       if (nextIndexBlock != -1) {
@@ -1015,6 +1017,7 @@ HT_ErrorCode HashStatistics(char* filename) {
         index = (IndexBlock*) BF_Block_GetData(indexBlock);
       }
     } while (nextIndexBlock != -1);
+    printf("out of the general loop\n");
 
     BF_Block_Destroy(&indexBlock);
     BF_Block_Destroy(&block);
