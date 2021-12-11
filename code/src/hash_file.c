@@ -114,7 +114,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   // Initialise index blocks
   int indexBlockAmount = ((arraySize - 1) / INDEX_ARRAY_SIZE) + 1;
   for (int i = 0; i < indexBlockAmount; i++){
-    printf("initialising %d index block\n", i);
     CALL_BF(BF_AllocateBlock(fileDesc, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     if (i+1 < indexBlockAmount) {
@@ -132,7 +131,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   // Initialise buckets
   for (int i = 0; i < arraySize; i++) {
-    printf("initialising %d bucket\n", i);
     CALL_BF(BF_AllocateBlock(fileDesc, block));
     DataBlock* dataBlockData = (DataBlock*) BF_Block_GetData(block);
     dataBlockData->localDepth = depth;
@@ -148,16 +146,13 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   // Map index to buckets
   int dataBlockCounter = indexBlockAmount + 1;
   for (int i = 1; i < indexBlockAmount + 1; i++){
-    printf("Index block: %d, indexBlockAmount = %d\n", i, indexBlockAmount);
     CALL_BF(BF_GetBlock(fileDesc, i, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     for (int j = 0; j < INDEX_ARRAY_SIZE; j++){
       if (dataBlockCounter < indexBlockAmount + arraySize + 1) {
-        printf("Mapping %d to %d\n", i, dataBlockCounter);
         data->index[j] = dataBlockCounter;
       }
       else {
-        printf("Mapping %d to -1\n", i);
         data->index[j] = -1;
       }
       dataBlockCounter++;      
@@ -234,7 +229,6 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   int j = 0;
   do {
     for (int k = 0 ; (k < INDEX_ARRAY_SIZE) && (j < indexSize); k++, j++) {
-      printf("Opening index %d with %d\n", j, data->index[k]);
       open_files[i].index[j] = data->index[k];
     }
     nextBlock = data->nextBlock;
