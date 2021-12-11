@@ -422,7 +422,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           newIndex[j]=open_files[indexDesc].index[i];
           newIndex[j+1]=open_files[indexDesc].index[i];
         }
-        BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
         CALL_BF(BF_UnpinBlock(targetBlock));
 
         BF_Block *newBlock;
@@ -430,7 +429,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,open_files[indexDesc].index[2*hashID]));
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&open_files[indexDesc].index[2*hashID]));
         newBlockData->localDepth = open_files[indexDesc].globalDepth;
         newBlockData->lastEmpty = 0;
         newBlockData->nextBlock = -1;
@@ -441,7 +440,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,open_files[indexDesc].index[(2*hashID)+1]));
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&open_files[indexDesc].index[(2*hashID)+1]));
         newBlockData->localDepth = open_files[indexDesc].globalDepth;
         newBlockData->lastEmpty = 0;
         newBlockData->nextBlock = -1;
@@ -465,7 +464,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,dataBlock1));
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&dataBlock1));
         newBlockData->localDepth = targetData->localDepth+1;
         newBlockData->lastEmpty = 0;
         newBlockData->nextBlock = -1;
@@ -473,12 +472,11 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,dataBlock2));
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&dataBlock2));
         newBlockData->localDepth = targetData->localDepth+1;
         newBlockData->lastEmpty = 0;
         newBlockData->nextBlock = -1;
         
-        BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
         CALL_BF(BF_UnpinBlock(targetBlock));
         for (int i=firstIDtoBlock;i<firstIDtoBlock+2^(targetData->localDepth-1);i++){
           open_files[indexDesc].index[i]=dataBlock1;
@@ -562,7 +560,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           for (int i=0;i<blockCount;i++){
             tempData = (DataBlock *)BF_Block_GetData(blockToDelete);
             CALL_BF(BF_UnpinBlock(blockToDelete));  //I don't know if this is needed
-            BF_Block_Destroy(&blockToDelete);
             if(tempData->nextBlock!=-1) BF_GetBlock(open_files[indexDesc].fileDesc,tempData->nextBlock,blockToDelete);
           }
           CALL_BF(BF_UnpinBlock(targetBlock));
@@ -620,7 +617,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           newBlockData->lastEmpty = 0;
           newBlockData->nextBlock = -1;
           
-          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
           CALL_BF(BF_UnpinBlock(targetBlock));
           for (int i=firstIDtoBlock;i<firstIDtoBlock+2^(targetData->localDepth-1);i++){
             open_files[indexDesc].index[i]=dataBlock1;
@@ -705,7 +701,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           for (int i=0;i<blockCount;i++){
             tempData = (DataBlock *)BF_Block_GetData(blockToDelete);
             CALL_BF(BF_UnpinBlock(blockToDelete));  //I don't know if this is needed
-            BF_Block_Destroy(&blockToDelete);
             if(tempData->nextBlock!=-1) BF_GetBlock(open_files[indexDesc].fileDesc,tempData->nextBlock,blockToDelete);
           }
           CALL_BF(BF_UnpinBlock(targetBlock));
@@ -763,7 +758,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           newBlockData->lastEmpty = 0;
           newBlockData->nextBlock = -1;
           
-          BF_Block_Destroy(&open_files[indexDesc].index[hashID]);
           CALL_BF(BF_UnpinBlock(targetBlock));
           for (int i=firstIDtoBlock;i<firstIDtoBlock+2^(targetData->localDepth-1);i++){
             open_files[indexDesc].index[i]=dataBlock1;
