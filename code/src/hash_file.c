@@ -149,6 +149,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_GetBlock(fileDesc, i, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     for (int j = 0; j < INDEX_ARRAY_SIZE; j++){
+      printf("Mapping index %d\n", j);
       if (dataBlockCounter < indexBlockAmount + arraySize + 1) data->index[j] = dataBlockCounter;
       else data->index[j] = -1;
       dataBlockCounter++;      
