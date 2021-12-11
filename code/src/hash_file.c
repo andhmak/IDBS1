@@ -375,7 +375,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
       newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-      CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
+      CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&(targetData->nextBlock)));
       newBlockData->localDepth = targetData->localDepth;
       newBlockData->index[0].id = record.id;
       strcpy(newBlockData->index[0].name,record.name);
@@ -397,7 +397,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
       newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-      CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
+      CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&(targetData->nextBlock)));
       newBlockData->localDepth = targetData->localDepth;
       newBlockData->index[0].id = record.id;
       strcpy(newBlockData->index[0].name,record.name);
@@ -416,7 +416,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       //split
       if(open_files[indexDesc].globalDepth==targetData->localDepth){
         open_files[indexDesc].globalDepth++;
-        int *newIndex[2^open_files[indexDesc].globalDepth];
+
+        int newIndex[2 << open_files[indexDesc].globalDepth];
         for (int i=0,j=0;i<2^(open_files[indexDesc].globalDepth-1) && j<2^(open_files[indexDesc].globalDepth);i++,j++){
           newIndex[j]=open_files[indexDesc].index[i];
           newIndex[j+1]=open_files[indexDesc].index[i];
@@ -652,7 +653,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&(targetData->nextBlock)));
         newBlockData->localDepth = targetData->localDepth;
         newBlockData->index[0].id = record.id;
         strcpy(newBlockData->index[0].name,record.name);
@@ -674,7 +675,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,targetData->nextBlock));
+        CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&(targetData->nextBlock)));
         newBlockData->localDepth = targetData->localDepth;
         newBlockData->index[0].id = record.id;
         strcpy(newBlockData->index[0].name,record.name);
