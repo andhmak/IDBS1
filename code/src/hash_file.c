@@ -943,19 +943,23 @@ HT_ErrorCode HashStatistics(char* filename) {
 
   // Else, scan it using the index in the disk
   else {
-
-    
+    // Open file
     int fd;
     CALL_BF(BF_OpenFile(filename, &fd));
-    // Print statistics stored on first block
+    // Scan it
     CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
     BF_Block* block;
     BF_Block_Init(&block);
     CALL_BF(BF_GetBlock(fd, 0, block));
     StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
+    average_recs_per_bucket = stat->total_recs/stat->total_buckets;
     CALL_BF(BF_UnpinBlock(block));
-    BF_Block_Destroy(&block);
 
+
+    
+    BF_Block_Destroy(&block);
+    // Close file
+    CALL_BF(BF_CloseFile(fd));
   }
 
   // Print the results
@@ -963,7 +967,5 @@ HT_ErrorCode HashStatistics(char* filename) {
   printf("Minimum records per bucket: %d\n", min_recs_per_bucket);
   printf("Average records per bucket: %d\n", average_recs_per_bucket);
   printf("Maximum records per bucket: %d\n", max_recs_per_bucket);
-  // Close file
-  CALL_BF(BF_CloseFile(fd));
   return HT_OK;
 }
