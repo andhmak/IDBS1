@@ -907,13 +907,17 @@ HT_ErrorCode HashStatistics(char* filename) {
       break;
     }
   }
+  int max_recs_per_bucket = 0; 
+  int min_recs_per_bucket = INT_MAX;
   if (i != MAX_OPEN_FILES) {
     BF_Block* block;
     BF_Block_Init(&block);
     int indexSize = 1 << open_files[i].globalDepth;
     for (int j = 0 ; j < indexSize ; j++) {
       CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
-      StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
+      DataBlock* data = (DataBlock*) BF_Block_GetData(block);
+      max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
+      min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
     }
     BF_Block_Destroy(&block);
   }
@@ -928,7 +932,9 @@ HT_ErrorCode HashStatistics(char* filename) {
   BF_Block_Init(&block);
   CALL_BF(BF_GetBlock(fd, 0, block));
   StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
+  printf("Minimum records per bucket: %d\n", min_recs_per_bucket);
   printf("Average records per bucket: %d\n", stat->total_recs/stat->total_buckets);
+  printf("Maximum records per bucket: %d\n", max_recs_per_bucket);
   CALL_BF(BF_UnpinBlock(block));
   BF_Block_Destroy(&block);
   // Close file
