@@ -352,6 +352,17 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
   if(targetData->nextBlock!=-1){
+
+    int blockCount=1;
+    while(targetData->nextBlock!=-1){
+      int next = targetData->nextBlock;
+      CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
+      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,next,targetBlock));
+      targetData = (DataBlock *)BF_Block_GetData(targetBlock);
+      blockCount++;
+    }
+    //the last block is still pined
+
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){ //last block has space
       //insert
       targetData->index[targetData->lastEmpty].id = record.id;
@@ -481,7 +492,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_UnpinBlock(targetBlock));
 
         BF_Block *newBlock;
-        BF_Block_Init(newBlock);
+        BF_Block_Init(&newBlock);
         DataBlock *newBlockData;
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
@@ -867,13 +878,13 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
         }
       }
       CALL_BF(BF_UnpinBlock(targetBlock));
-      BF_Block_Destroy(targetBlock);
+      BF_Block_Destroy(&targetBlock);
     }
   }
   else{
     printf("Printing entries with ID: %i\n", *id);
 
-    int hashID = (hash_func(id)%(2^open_files[indexDesc].globalDepth));
+    int hashID = (hash_func(*id)%(2^open_files[indexDesc].globalDepth));
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
     CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
@@ -895,7 +906,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
       }
     }
     CALL_BF(BF_UnpinBlock(targetBlock));
-    BF_Block_Destroy(targetBlock);
+    BF_Block_Destroy(&targetBlock);
   }
   return HT_OK;
 }
