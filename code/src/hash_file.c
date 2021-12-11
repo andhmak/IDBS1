@@ -907,11 +907,17 @@ HT_ErrorCode HashStatistics(char* filename) {
       break;
     }
   }
+  int blockAmount;
+  int average_recs_per_bucket;
   int max_recs_per_bucket = 0; 
   int min_recs_per_bucket = INT_MAX;
   if (i != MAX_OPEN_FILES) {
+    CALL_BF(BF_GetBlockCounter(open_files[i].fileDesc, &blockAmount));
     BF_Block* block;
     BF_Block_Init(&block);
+    CALL_BF(BF_GetBlock(open_files[i].fileDesc, 0, block));
+    StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
+    average_recs_per_bucket = stat->total_recs/stat->total_buckets;
     int indexSize = 1 << open_files[i].globalDepth;
     for (int j = 0 ; j < indexSize ; j++) {
       CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
