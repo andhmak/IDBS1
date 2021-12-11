@@ -112,6 +112,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   fflush(stdout);
 
   // Initialise index blocks
+  printf("arraysize = %d, INDEX_ARRAY_SIZE = %d\n",arraySize, INDEX_ARRAY_SIZE)
   int indexBlockAmount = (arraySize - 1) / INDEX_ARRAY_SIZE + 1;
   for (int i = 0; i < indexBlockAmount; i++){
     CALL_BF(BF_AllocateBlock(fileDesc, block));
@@ -147,7 +148,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   // Map index to buckets
   int dataBlockCounter = indexBlockAmount + 1;
   for (int i = 1; i < indexBlockAmount + 1; i++){
-    printf("Index block: %d, indexBlockAmount = %d", i, indexBlockAmount);
+    printf("Index block: %d, indexBlockAmount = %d\n", i, indexBlockAmount);
     CALL_BF(BF_GetBlock(fileDesc, i, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     for (int j = 0; j < INDEX_ARRAY_SIZE; j++){
