@@ -113,6 +113,8 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
 
   // Initialise index blocks
   printf("arraysize = %d, INDEX_ARRAY_SIZE = %d\n",arraySize, INDEX_ARRAY_SIZE);
+  printf("arraySize - 1 = %d\n",arraySize -1 , INDEX_ARRAY_SIZE);
+  printf("((arraySize - 1) / INDEX_ARRAY_SIZE) = %d\n",((arraySize - 1) / INDEX_ARRAY_SIZE));
   int indexBlockAmount = ((arraySize - 1) / INDEX_ARRAY_SIZE) + 1;
   printf("indexBlockAmount = %d\n",indexBlockAmount);
   for (int i = 0; i < indexBlockAmount; i++){
