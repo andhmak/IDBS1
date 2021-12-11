@@ -352,7 +352,8 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   
-  int hashID = (hash_func(record.id) >> (8*sizeof(int) - open_files[indexDesc].globalDepth));
+  int hashID = (hash_func(record.id) >> (MAX_DEPTH - open_files[indexDesc].globalDepth));
+  printf("%d\n", hashID);
   BF_Block *targetBlock;
   BF_Block_Init(&targetBlock);
   CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
@@ -361,6 +362,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   if(targetData->nextBlock!=-1){ //overflow
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){ //last block has space
       //insert
+      printf("1\n");
       targetData->index[targetData->lastEmpty].id = record.id;
       strcpy(targetData->index[targetData->lastEmpty].name,record.name);
       strcpy(targetData->index[targetData->lastEmpty].surname,record.surname);
@@ -373,6 +375,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       return HT_OK;
     }
     else{
+      printf("2\n");
       //make next block
       BF_Block *newBlock;
       BF_Block_Init(&newBlock);
@@ -402,6 +405,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){
       //insert
+      printf("3\n");
       targetData->index[targetData->lastEmpty].id = record.id;
       strcpy(targetData->index[targetData->lastEmpty].name,record.name);
       strcpy(targetData->index[targetData->lastEmpty].surname,record.surname);
@@ -439,6 +443,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     }*/
     else if(targetData->localDepth==MAX_DEPTH){    //reached MAX depth
       //make next block
+      printf("4\n");
       BF_Block *newBlock;
       BF_Block_Init(&newBlock);
       DataBlock *newBlockData;
@@ -464,7 +469,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     }
     else{
       //split
-
+      printf("5\n");
       //making an array with all the entries of this block
       Record *entryArray=malloc((1+targetData->lastEmpty)*sizeof(Record));  //1 for the new entry and all the entries of the block
       entryArray[0] = record;
@@ -474,9 +479,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
       if(open_files[indexDesc].globalDepth==targetData->localDepth){
         open_files[indexDesc].globalDepth++;
+        printf("new depth %d\n", open_files[indexDesc].globalDepth);
 
-        int *newIndex = malloc((2<<open_files[indexDesc].globalDepth)*sizeof(int));
-        for (int i=0,j=0;i<(2<<(open_files[indexDesc].globalDepth-1)) && j<(2<<(open_files[indexDesc].globalDepth));i++,j+=2){
+        int *newIndex = malloc((1<<open_files[indexDesc].globalDepth)*sizeof(int));
+        for (int i=0,j=0;i<(1<<(open_files[indexDesc].globalDepth-1)) && j<(1<<(open_files[indexDesc].globalDepth));i++,j+=2){
           newIndex[j]=open_files[indexDesc].index[i];
           newIndex[j+1]=open_files[indexDesc].index[i];
         }
@@ -496,6 +502,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
         CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&open_files[indexDesc].index[(2*hashID)+1]));
+        open_files[indexDesc].index[(2*hashID)+1]--;
         newBlockData->localDepth = open_files[indexDesc].globalDepth;
         newBlockData->lastEmpty = 0;
         newBlockData->nextBlock = -1;
@@ -503,15 +510,18 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         BF_Block_SetDirty(newBlock);
         CALL_BF(BF_UnpinBlock(newBlock));
         BF_Block_Destroy(&newBlock);
+        BF_Block_Destroy(&targetBlock);
 
         free(open_files[indexDesc].index);
         open_files[indexDesc].index=newIndex;
         for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
           HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
         }
+        free(entryArray);
         return HT_OK; 
       }
       else if(open_files[indexDesc].globalDepth>targetData->localDepth){
+        printf("6\n");
         int firstIDtoBlock=((hashID >> targetData->localDepth) << targetData->localDepth);
         
         int dataBlock;
@@ -527,8 +537,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         newBlockData->nextBlock = -1;
         
         CALL_BF(BF_UnpinBlock(targetBlock));
-        for (int i=firstIDtoBlock;i<firstIDtoBlock+(2<<(targetData->localDepth-1));i++){
-          open_files[indexDesc].index[i]=dataBlock;
+        for (int i=firstIDtoBlock;i<firstIDtoBlock+(1<<(targetData->localDepth-1));i++){
+          open_files[indexDesc].index[i]=dataBlock-1;
         }
 
         //the second half of the hashIDs will have the same block as in the last index but it will be empty
@@ -547,10 +557,12 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
           HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
         }
+        free(entryArray);
         
         return HT_OK; 
       }
       else{
+        printf("7\n");
         CALL_BF(BF_UnpinBlock(targetBlock));
         BF_Block_Destroy(&targetBlock);
         return HT_ERROR;
@@ -883,7 +895,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   else{
     printf("Printing entries with ID: %i\n", *id);
 
-    int hashID = (hash_func(*id)%(2^open_files[indexDesc].globalDepth));
+    int hashID = (hash_func(*id)%(1<<open_files[indexDesc].globalDepth));
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
     CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
