@@ -118,6 +118,9 @@ int main() {
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, &id));
   printf("RUN PrintAllEntries without ID\n");
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, NULL));*/
+  printf("RUN HashStatistics\n");
+  CALL_OR_DIE(HashStatistics(FILE_NAME_1));
+  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
 
 
   CALL_OR_DIE(HT_CloseFile(indexDesc1));

@@ -225,6 +225,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   int j = 0;
   do {
     for (int k = 0 ; (k < INDEX_ARRAY_SIZE) && (j < indexSize); k++, j++) {
+      printf("Creating index %d\n", j);
       open_files[i].index[j] = data->index[k];
     }
     nextBlock = data->nextBlock;
@@ -901,9 +902,11 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 }
 
 HT_ErrorCode HashStatistics(char* filename) {
+  printf("HashStatistics started OK\n");
+  fflush(stdout);
   // Check if file is open
   int i;
-  for (int i = 0 ; i < MAX_OPEN_FILES ; i++) {
+  for (i = 0 ; i < MAX_OPEN_FILES ; i++) {
     if((strcmp(open_files[i].filename, filename) == 0) && (open_files[i].mainPos == -1)) {
       break;
     }
@@ -915,6 +918,7 @@ HT_ErrorCode HashStatistics(char* filename) {
 
   // If it is, scan it using the index in the memory
   if (i != MAX_OPEN_FILES) {
+    printf("HashStatistics: file in memory\n");
     CALL_BF(BF_GetBlockCounter(open_files[i].fileDesc, &blockAmount));
     BF_Block* block;
     BF_Block_Init(&block);
@@ -922,9 +926,15 @@ HT_ErrorCode HashStatistics(char* filename) {
     StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
     average_recs_per_bucket = stat->total_recs/stat->total_buckets;
     CALL_BF(BF_UnpinBlock(block));
+
+    printf("HashStatistics: file in memory: amount and average calculated OK\n");
     int indexSize = 1 << open_files[i].globalDepth;
+    printf("open_files[i].globalDepth: %d\n", open_files[i].globalDepth);
+    printf("indexsize: %d\n", indexSize);
     for (int j = 0 ; j < indexSize ; j++) {
+//      printf("j: %d\n", j);
       CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
+//      printf("got j\n");
       DataBlock* data = (DataBlock*) BF_Block_GetData(block);
       max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
       min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
@@ -944,6 +954,8 @@ HT_ErrorCode HashStatistics(char* filename) {
 
   // Else, scan it using the index in the disk
   else {
+    printf("HashStatistics: file not in memory\n");
+    fflush(stdout);
     // Open file
     int fd;
     CALL_BF(BF_OpenFile(filename, &fd));
@@ -956,6 +968,7 @@ HT_ErrorCode HashStatistics(char* filename) {
     average_recs_per_bucket = stat->total_recs/stat->total_buckets;
     CALL_BF(BF_UnpinBlock(block));
 
+    printf("HashStatistics: file not in memory: amount and average calculated OK\n");
     BF_Block* indexBlock;
     BF_Block_Init(&indexBlock);
     CALL_BF(BF_GetBlock(fd, 1, indexBlock));
@@ -997,5 +1010,8 @@ HT_ErrorCode HashStatistics(char* filename) {
   printf("Minimum records per bucket: %d\n", min_recs_per_bucket);
   printf("Average records per bucket: %d\n", average_recs_per_bucket);
   printf("Maximum records per bucket: %d\n", max_recs_per_bucket);
+
+  printf("HashStatistics ended OK\n");
+  fflush(stdout);
   return HT_OK;
 }
