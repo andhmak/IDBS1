@@ -912,7 +912,8 @@ HT_ErrorCode HashStatistics(char* filename) {
     BF_Block_Init(&block);
     int indexSize = 1 << open_files[i].globalDepth;
     for (int j = 0 ; j < indexSize ; j++) {
-
+      CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
+      StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
     }
     BF_Block_Destroy(&block);
   }
