@@ -222,7 +222,8 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
   CALL_BF(BF_GetBlock(fd, 1, block));
   IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
   int nextBlock;
-  for (int j = 0 ; nextBlock != -1 ; ) {
+  int j = 0;
+  do {
     for (int k = 0 ; (k < INDEX_ARRAY_SIZE) && (j < indexSize); k++, j++) {
       open_files[i].index[j] = data->index[k];
     }
@@ -232,7 +233,7 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
       CALL_BF(BF_GetBlock(fd, nextBlock, block));
       data = (IndexBlock*) BF_Block_GetData(block);
     }
-  }
+  } while (nextBlock != -1);
   BF_Block_Destroy(&block);
   printf("HT_Open ended OK\n");
   fflush(stdout);
@@ -955,8 +956,38 @@ HT_ErrorCode HashStatistics(char* filename) {
     average_recs_per_bucket = stat->total_recs/stat->total_buckets;
     CALL_BF(BF_UnpinBlock(block));
 
+    BF_Block* indexBlock;
+    BF_Block_Init(&indexBlock);
+    CALL_BF(BF_GetBlock(fd, 1, indexBlock));
+    IndexBlock* index = (IndexBlock*) BF_Block_GetData(indexBlock);
+    int nextIndexBlock;
+    for (int j = 0 ; nextIndexBlock != -1 ; ) {
+      for (int j = 0 ; j < INDEX_ARRAY_SIZE ; j++) {
+        CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
+        DataBlock* data = (DataBlock*) BF_Block_GetData(block);
+        max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
+        min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
+        int nextBlock = data->nextBlock;
+        CALL_BF(BF_UnpinBlock(block));
+        while (nextBlock != -1) {
+          CALL_BF(BF_GetBlock(open_files[i].fileDesc, nextBlock, block));
+          DataBlock* data = (DataBlock*) BF_Block_GetData(block);
+          max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
+          min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
+          nextBlock = data->nextBlock;
+          CALL_BF(BF_UnpinBlock(block));
+        }
+      }
+      nextIndexBlock = data->nextBlock;
+      CALL_BF(BF_UnpinBlock(block));
+      if (nextBlock != -1) {
+        CALL_BF(BF_GetBlock(fd, nextBlock, block));
+        data = (IndexBlock*) BF_Block_GetData(block);
+      }
+    }
 
-    
+
+
     BF_Block_Destroy(&block);
     // Close file
     CALL_BF(BF_CloseFile(fd));
