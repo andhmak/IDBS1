@@ -961,7 +961,7 @@ HT_ErrorCode HashStatistics(char* filename) {
     CALL_BF(BF_GetBlock(fd, 1, indexBlock));
     IndexBlock* index = (IndexBlock*) BF_Block_GetData(indexBlock);
     int nextIndexBlock;
-    for (int j = 0 ; nextIndexBlock != -1 ; ) {
+    do {
       for (int j = 0 ; j < INDEX_ARRAY_SIZE ; j++) {
         CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
         DataBlock* data = (DataBlock*) BF_Block_GetData(block);
@@ -978,16 +978,15 @@ HT_ErrorCode HashStatistics(char* filename) {
           CALL_BF(BF_UnpinBlock(block));
         }
       }
-      nextIndexBlock = data->nextBlock;
-      CALL_BF(BF_UnpinBlock(block));
-      if (nextBlock != -1) {
-        CALL_BF(BF_GetBlock(fd, nextBlock, block));
-        data = (IndexBlock*) BF_Block_GetData(block);
+      nextIndexBlock = index->nextBlock;
+      CALL_BF(BF_UnpinBlock(indexBlock));
+      if (nextIndexBlock != -1) {
+        CALL_BF(BF_GetBlock(fd, nextIndexBlock, indexBlock));
+        index = (IndexBlock*) BF_Block_GetData(indexBlock);
       }
-    }
+    } while (nextIndexBlock != -1);
 
-
-
+    BF_Block_Destroy(&indexBlock);
     BF_Block_Destroy(&block);
     // Close file
     CALL_BF(BF_CloseFile(fd));
