@@ -989,17 +989,17 @@ HT_ErrorCode HashStatistics(char* filename) {
     IndexBlock* index = (IndexBlock*) BF_Block_GetData(indexBlock);
     int nextIndexBlock;
     do {
-      printf("new index block");
+      printf("new index block\n");
       fflush(stdout);
       for (int j = 0 ; j < INDEX_ARRAY_SIZE ; j++) {
-        CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
+        CALL_BF(BF_GetBlock(fd, index->index[j], block));
         DataBlock* data = (DataBlock*) BF_Block_GetData(block);
         max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
         min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
         int nextBlock = data->nextBlock;
         CALL_BF(BF_UnpinBlock(block));
         while (nextBlock != -1) {
-          CALL_BF(BF_GetBlock(open_files[i].fileDesc, nextBlock, block));
+          CALL_BF(BF_GetBlock(fd, nextBlock, block));
           DataBlock* data = (DataBlock*) BF_Block_GetData(block);
           max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
           min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
