@@ -112,7 +112,7 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   fflush(stdout);
 
   // Initialise index blocks
-  printf("arraysize = %d, INDEX_ARRAY_SIZE = %d\n",arraySize, INDEX_ARRAY_SIZE)
+  printf("arraysize = %d, INDEX_ARRAY_SIZE = %d\n",arraySize, INDEX_ARRAY_SIZE);
   int indexBlockAmount = (arraySize - 1) / INDEX_ARRAY_SIZE + 1;
   for (int i = 0; i < indexBlockAmount; i++){
     CALL_BF(BF_AllocateBlock(fileDesc, block));
