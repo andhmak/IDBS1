@@ -540,6 +540,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         for (int i=0;i<sizeof(entryArray)/sizeof(record);i++){
           HT_InsertEntry(open_files[indexDesc].fileDesc,entryArray[i]);
         }
+        
         return HT_OK; 
       }
       else{
