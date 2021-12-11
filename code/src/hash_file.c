@@ -991,7 +991,7 @@ HT_ErrorCode HashStatistics(char* filename) {
     do {
       printf("new index block\n");
       fflush(stdout);
-      for (int j = 0 ; j < INDEX_ARRAY_SIZE ; j++) {
+      for (int j = 0 ; (j < INDEX_ARRAY_SIZE) && (index->index[j] != -1); j++) {
         CALL_BF(BF_GetBlock(fd, index->index[j], block));
         DataBlock* data = (DataBlock*) BF_Block_GetData(block);
         max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
