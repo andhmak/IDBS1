@@ -908,7 +908,13 @@ HT_ErrorCode HashStatistics(char* filename) {
     }
   }
   if (i != MAX_OPEN_FILES) {
-    
+    BF_Block* block;
+    BF_Block_Init(&block);
+    int indexSize = 1 << open_files[i].globalDepth;
+    for (int j = 0 ; j < indexSize ; j++) {
+
+    }
+    BF_Block_Destroy(&block);
   }
 
   int fd;
