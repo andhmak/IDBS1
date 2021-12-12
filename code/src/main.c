@@ -5,7 +5,7 @@
 #include "bf.h"
 #include "hash_file.h"
 
-#define RECORDS_NUM 1000 // you can change it if you want
+#define RECORDS_NUM 250 // you can change it if you want
 #define GLOBAL_DEPT_1 2 // you can change it if you want
 #define GLOBAL_DEPT_2 8 // you can change it if you want
 #define FILE_NAME_1 "data1.db"
@@ -75,7 +75,6 @@ int main() {
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc2)); 
   int indexDesc3;
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc3)); 
-/*
   Record record;
   srand(12569874);
   int r;
@@ -93,6 +92,7 @@ int main() {
     CALL_OR_DIE(HT_InsertEntry(indexDesc1, record));
   }
 
+/*
   printf("RUN PrintAllEntries with ID\n");
   int id = rand() % RECORDS_NUM;
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, &id));

@@ -10,7 +10,7 @@
 
 #define INDEX_ARRAY_SIZE ((BF_BLOCK_SIZE-sizeof(int))/sizeof(int))
 #define DATA_ARRAY_SIZE ((BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record))
-#define MAX_DEPTH 1
+#define MAX_DEPTH 8*sizeof(int)
 
 #define CALL_BF(call)       \
 {                           \
@@ -355,6 +355,13 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   printf("%d\n", hashID);
   BF_Block *targetBlock;
   BF_Block_Init(&targetBlock);
+
+  CALL_BF(BF_GetBlock(indexDesc, 0, targetBlock));
+  StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
+  statData->total_recs++;
+  BF_Block_SetDirty(targetBlock);
+  CALL_BF(BF_UnpinBlock(targetBlock));
+
   CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
   DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
@@ -367,12 +374,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       strcpy(targetData->index[targetData->lastEmpty].surname,record.surname);
       strcpy(targetData->index[targetData->lastEmpty].city,record.city);
       targetData->lastEmpty++;
-      BF_Block_SetDirty(targetBlock);
-      CALL_BF(BF_UnpinBlock(targetBlock));
-
-      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
-      StatBlock* statData = BF_Block_GetData(targetData);
-      statData->total_recs++;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
       
@@ -402,12 +403,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_UnpinBlock(targetBlock));
       CALL_BF(BF_UnpinBlock(newBlock));
 
-      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
-      StatBlock* statData = BF_Block_GetData(targetData);
-      statData->total_recs++;
-      BF_Block_SetDirty(targetBlock);
-      CALL_BF(BF_UnpinBlock(targetBlock));
-
       BF_Block_Destroy(&targetBlock);
       BF_Block_Destroy(&newBlock);
       return HT_OK;
@@ -423,12 +418,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       strcpy(targetData->index[targetData->lastEmpty].surname,record.surname);
       strcpy(targetData->index[targetData->lastEmpty].city,record.city);
       targetData->lastEmpty++;
-      BF_Block_SetDirty(targetBlock);
-      CALL_BF(BF_UnpinBlock(targetBlock));
-
-      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
-      StatBlock* statData = BF_Block_GetData(targetData);
-      statData->total_recs++;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
 
@@ -483,12 +472,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_UnpinBlock(targetBlock));
       CALL_BF(BF_UnpinBlock(newBlock));
 
-      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
-      StatBlock* statData = BF_Block_GetData(targetData);
-      statData->total_recs++;
-      BF_Block_SetDirty(targetBlock);
-      CALL_BF(BF_UnpinBlock(targetBlock));
-
       BF_Block_Destroy(&targetBlock);
       BF_Block_Destroy(&newBlock);
       return HT_OK;
@@ -496,9 +479,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     else{
       //split
 
-      CALL_BF(BF_GetBlock(indexDesc, 0, &targetBlock));
-      StatBlock* statData = BF_Block_GetData(targetData);
-      statData->total_recs++;
+      CALL_BF(BF_GetBlock(indexDesc, 0, targetBlock));
+      StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
       statData->total_buckets++;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
