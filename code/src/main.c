@@ -92,7 +92,6 @@ int main() {
     CALL_OR_DIE(HT_InsertEntry(indexDesc1, record));
   }
 
-/*
   printf("RUN PrintAllEntries with ID\n");
   int id = rand() % RECORDS_NUM;
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, &id));
@@ -113,6 +112,7 @@ int main() {
     CALL_OR_DIE(HT_InsertEntry(indexDesc2, record));
   }
 
+/*
   printf("RUN PrintAllEntries with ID\n");
   id = 5;
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, &id));
