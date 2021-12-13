@@ -295,7 +295,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   printf("indexSize: %d\n", indexSize);
   fflush(stdout);
   for (int j = 0 ; j < indexSize ; ) {
-    printf("Updating new block\n");
+    printf("Started updating new block\n");
     for (int k = 0 ; k < INDEX_ARRAY_SIZE; k++, j++) {
       if (j < indexSize) {
         data->index[k] = open_files[indexDesc].index[j];
@@ -304,6 +304,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
         data->index[k] = -1;
       }
     }
+    printf("Ended updating new block\n");
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
       if (j < indexSize - 1) {
