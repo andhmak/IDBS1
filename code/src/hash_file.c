@@ -513,6 +513,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       if(open_files[indexDesc].globalDepth==targetData->localDepth){
         open_files[indexDesc].globalDepth++;
         printf("new depth %d\n", open_files[indexDesc].globalDepth);
+        fflush(stdout);
 
         int *newIndex = malloc((1<<open_files[indexDesc].globalDepth)*sizeof(int));
         for (int i=0,j=0;i<(1<<(open_files[indexDesc].globalDepth-1)) && j<(1<<(open_files[indexDesc].globalDepth));i++,j+=2){
