@@ -5,7 +5,7 @@
 #include "bf.h"
 #include "hash_file.h"
 
-#define RECORDS_NUM 128 // you can change it if you want
+#define RECORDS_NUM 1024 // you can change it if you want
 #define GLOBAL_DEPT_1 2 // you can change it if you want
 #define GLOBAL_DEPT_2 8 // you can change it if you want
 #define FILE_NAME_1 "data1.db"
@@ -71,10 +71,10 @@ int main() {
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME_1, GLOBAL_DEPT_1));
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME_1, &indexDesc1));
   int indexDesc2;
-  CALL_OR_DIE(HT_CreateIndex(FILE_NAME_2, GLOBAL_DEPT_2));
-  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc2)); 
-  int indexDesc3;
-  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc3)); 
+//  CALL_OR_DIE(HT_CreateIndex(FILE_NAME_2, GLOBAL_DEPT_2));
+//  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc2)); 
+//  int indexDesc3;
+//  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc3)); 
   Record record;
   srand(12569874);
   int r;
@@ -94,16 +94,16 @@ int main() {
   
   printf("RUN PrintAllEntries with ID\n");
   int id = rand() % RECORDS_NUM;
-  CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, &id));
+  /*CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, &id));
   for (int i = 0; i < RECORDS_NUM; i++) {
     CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, &i));
   }
   printf("RUN PrintAllEntries without ID\n");
-  CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, NULL));
+  CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, NULL));*/
 
 
   /*printf("Insert Entries with same ID\n");
-  for (int id = 0; id < RECORDS_NUM; ++id) {
+  for (int i = 0; i < 9; ++i) {
     // create a record
     record.id = 5;
     r = rand() % 12;
@@ -118,19 +118,19 @@ int main() {
 
   printf("RUN PrintAllEntries with ID\n");
   id = 5;
-  CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, &id));
+//  CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, &id));
   printf("RUN PrintAllEntries without ID\n");
-  CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, NULL));
+//  CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, NULL));
   printf("RUN HashStatistics\n");
   CALL_OR_DIE(HashStatistics(FILE_NAME_1));
-  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
+//  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
 
 
   CALL_OR_DIE(HT_CloseFile(indexDesc1));
-  CALL_OR_DIE(HT_CloseFile(indexDesc2));
-  CALL_OR_DIE(HT_CloseFile(indexDesc3));
+//  CALL_OR_DIE(HT_CloseFile(indexDesc2));
+//  CALL_OR_DIE(HT_CloseFile(indexDesc3));
   printf("RUN HashStatistics\n");
   CALL_OR_DIE(HashStatistics(FILE_NAME_1));
-  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
+//  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
   BF_Close();
 }

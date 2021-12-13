@@ -306,6 +306,8 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
       if (j < indexSize - 1) {
+        printf("making new block in %d\n", blockAmount++);
+        fflush(stdout);
         data->nextBlock = blockAmount++;
         BF_Block_SetDirty(block);
         CALL_BF(BF_UnpinBlock(block));
@@ -707,8 +709,6 @@ HT_ErrorCode HashStatistics(char* filename) {
     bucketAmount = stat->total_buckets;
     recordAmount = stat->total_recs;
     CALL_BF(BF_UnpinBlock(block));
-
-    printf("HashStatistics: file in memory: amount and average calculated OK\n");
     int indexSize = 1 << open_files[i].globalDepth;
     printf("open_files[i].globalDepth: %d\n", open_files[i].globalDepth);
     printf("indexsize: %d\n", indexSize);
@@ -750,8 +750,6 @@ HT_ErrorCode HashStatistics(char* filename) {
     recordAmount = stat->total_recs;
     
     CALL_BF(BF_UnpinBlock(block));
-
-    printf("HashStatistics: file not in memory: amount and average calculated OK\n");
     fflush(stdout);
     BF_Block* indexBlock;
     BF_Block_Init(&indexBlock);
