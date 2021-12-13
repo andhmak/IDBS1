@@ -11,7 +11,7 @@
 #define INDEX_ARRAY_SIZE ((BF_BLOCK_SIZE-sizeof(int))/sizeof(int))
 #define DATA_ARRAY_SIZE ((BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record))
 #define MAX_DEPTH (8*sizeof(int)-8)
-#define SHIFT_CONST (8*sizeof(int)-1)
+#define SHIFT_CONST (8*sizeof(int))
 
 #define CALL_BF(call)       \
 {                           \
