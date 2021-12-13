@@ -103,7 +103,7 @@ int main() {
 
 
   printf("Insert Entries with same ID\n");
-  for (int i = 0; i < 7; ++i) {
+  for (int i = 0; i < 9; ++i) {
     // create a record
     record.id = 5;
     r = rand() % 12;
