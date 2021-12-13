@@ -10,7 +10,7 @@
 
 #define INDEX_ARRAY_SIZE ((BF_BLOCK_SIZE-sizeof(int))/sizeof(int))
 #define DATA_ARRAY_SIZE ((BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record))
-#define MAX_DEPTH (8*sizeof(int)-12)
+#define MAX_DEPTH (8*sizeof(int)-8)
 #define SHIFT_CONST (8*sizeof(int)-1)
 
 #define CALL_BF(call)       \
@@ -267,7 +267,13 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
       strcpy(open_files[indexDesc].filename, "");
       open_files[j].mainPos = -1;
       open_files[j].globalDepth = open_files[indexDesc].globalDepth;
+      open_files[j].index = open_files[indexDesc].index;
       printf("HT_Close was main and ended OK\n");
+      for (int k = 0 ; k < MAX_OPEN_FILES ; k++) {
+        if((strcmp(open_files[j].filename, open_files[k].filename) == 0) && (k != j)) {
+          open_files[k].mainPos = j;
+        }
+      }
       return HT_OK;
     }
   }
@@ -368,6 +374,11 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
 }*/
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
+
+  // Check if secondary entry
+  if (open_files[indexDesc].mainPos != -1) {
+    indexDesc = open_files[indexDesc].mainPos;
+  }
 
   
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
@@ -628,6 +639,12 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 }
 
 HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
+
+  // Check if secondary entry
+  if (open_files[indexDesc].mainPos != -1) {
+    indexDesc = open_files[indexDesc].mainPos;
+  }
+  
   if (id==NULL){
     printf("Printing all entries\n");
     
@@ -773,7 +790,7 @@ HT_ErrorCode HashStatistics(char* filename) {
     IndexBlock* index = (IndexBlock*) BF_Block_GetData(indexBlock);
     int nextIndexBlock;
     do {
-      printf("new index block\n");
+//      printf("new index block\n");
       fflush(stdout);
       for (int j = 0 ; (j < INDEX_ARRAY_SIZE) && (index->index[j] != -1); j++) {
         CALL_BF(BF_GetBlock(fd, index->index[j], block));
@@ -792,11 +809,11 @@ HT_ErrorCode HashStatistics(char* filename) {
           CALL_BF(BF_UnpinBlock(block));
         }
       }
-      printf("out of the loop\n");
+//      printf("out of the loop\n");
       fflush(stdout);
       nextIndexBlock = index->nextBlock;
       CALL_BF(BF_UnpinBlock(indexBlock));
-      printf("nextIndexBlock = %d\n", nextIndexBlock);
+//      printf("nextIndexBlock = %d\n", nextIndexBlock);
       if (nextIndexBlock != -1) {
         CALL_BF(BF_GetBlock(fd, nextIndexBlock, indexBlock));
         index = (IndexBlock*) BF_Block_GetData(indexBlock);
