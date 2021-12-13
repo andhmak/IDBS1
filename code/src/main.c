@@ -73,8 +73,8 @@ int main() {
   int indexDesc2;
   CALL_OR_DIE(HT_CreateIndex(FILE_NAME_2, GLOBAL_DEPT_2));
   CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc2)); 
-  int indexDesc3;
-  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc3)); 
+//  int indexDesc3;
+//  CALL_OR_DIE(HT_OpenIndex(FILE_NAME_2, &indexDesc3)); 
   Record record;
   srand(12569874);
   int r;
@@ -128,7 +128,7 @@ int main() {
 
   CALL_OR_DIE(HT_CloseFile(indexDesc1));
   CALL_OR_DIE(HT_CloseFile(indexDesc2));
-  CALL_OR_DIE(HT_CloseFile(indexDesc3));
+//  CALL_OR_DIE(HT_CloseFile(indexDesc3));
   printf("RUN HashStatistics\n");
   CALL_OR_DIE(HashStatistics(FILE_NAME_1));
   CALL_OR_DIE(HashStatistics(FILE_NAME_2));
