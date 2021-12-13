@@ -7,7 +7,7 @@
 
 #define RECORDS_NUM 2048 // you can change it if you want
 #define GLOBAL_DEPT_1 2 // you can change it if you want
-#define GLOBAL_DEPT_2 8 // you can change it if you want
+#define GLOBAL_DEPT_2 10 // you can change it if you want
 #define FILE_NAME_1 "data1.db"
 #define FILE_NAME_2 "data2.db"
 

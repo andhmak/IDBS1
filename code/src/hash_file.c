@@ -11,7 +11,6 @@
 #define INDEX_ARRAY_SIZE ((BF_BLOCK_SIZE-sizeof(int))/sizeof(int))
 #define DATA_ARRAY_SIZE ((BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record))
 #define MAX_DEPTH (8*sizeof(int)-12)
-#define SHIFT_CONST (8*sizeof(int)-1)
 
 #define CALL_BF(call)       \
 {                           \
@@ -23,10 +22,10 @@
 }
 
 int hash_func(int x) {
-    x = ((x >> (sizeof(int)/2)) ^ x) * 0x45d9f3b;
-    x = ((x >> (sizeof(int)/2)) ^ x) * 0x45d9f3b;
-    x = (x >> (sizeof(int)/2)) ^ x;
-    return x;
+  x = ((x >> (sizeof(int)/2)) ^ x) * 0x45d9f3b;
+  x = ((x >> (sizeof(int)/2)) ^ x) * 0x45d9f3b;
+  x = (x >> (sizeof(int)/2)) ^ x;
+  return x;
 }
 
 typedef struct StatBlock {
@@ -359,7 +358,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   
-  int hashID = (hash_func(record.id) >> (SHIFT_CONST - open_files[indexDesc].globalDepth));
+  int hashID = (hash_func(record.id) >> (8*sizeof(int) - open_files[indexDesc].globalDepth));
   printf("%d\n", hashID);
   BF_Block *targetBlock;
   BF_Block_Init(&targetBlock);
@@ -651,7 +650,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   else{
 
     printf("Printing entries with ID: %i\n", *id);
-    int hashID = (hash_func(*id)>>(SHIFT_CONST - open_files[indexDesc].globalDepth));
+    int hashID = (hash_func(*id)>>(8*sizeof(int) - open_files[indexDesc].globalDepth));
     printf("global depth %d\n", open_files[indexDesc].globalDepth);
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
