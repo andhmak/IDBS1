@@ -380,11 +380,12 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     indexDesc = open_files[indexDesc].mainPos;
   }
 
-  
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   
-  int hashID = (hash_func(record.id) >> (SHIFT_CONST - open_files[indexDesc].globalDepth));
-  printf("%d\n", hashID);
+  int hashID = hash_func(record.id);
+  hashID = (hashID >> (SHIFT_CONST - open_files[indexDesc].globalDepth));
+
+  printf("%x\n", hashID);
   BF_Block *targetBlock;
   BF_Block_Init(&targetBlock);
 
