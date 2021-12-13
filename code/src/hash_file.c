@@ -426,6 +426,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, 0, targetBlock));
       StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
       statData->total_recs++;
+      statData->total_buckets++;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
 
