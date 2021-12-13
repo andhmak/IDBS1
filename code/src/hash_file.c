@@ -306,7 +306,6 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
       if (j < indexSize - 1) {
-        printf("making new block in %d\n", blockAmount);
         fflush(stdout);
         data->nextBlock = blockAmount++;
         BF_Block_SetDirty(block);
