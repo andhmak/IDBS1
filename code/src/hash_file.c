@@ -382,10 +382,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   
-  int hashID = hash_func(record.id);
-  hashID = (hashID >> (SHIFT_CONST - open_files[indexDesc].globalDepth));
+  int hashID = ((hash_func(record.id) & INT_MAX) >> (SHIFT_CONST - open_files[indexDesc].globalDepth));
 
-  printf("%x\n", hashID);
+  printf("%d\n", hashID);
+
   BF_Block *targetBlock;
   BF_Block_Init(&targetBlock);
 
@@ -686,7 +686,7 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   else{
 
     printf("Printing entries with ID: %i\n", *id);
-    int hashID = (hash_func(*id)>>(SHIFT_CONST - open_files[indexDesc].globalDepth));
+    int hashID = ((hash_func(*id) & INT_MAX )>>(SHIFT_CONST - open_files[indexDesc].globalDepth));
     printf("global depth %d\n", open_files[indexDesc].globalDepth);
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
