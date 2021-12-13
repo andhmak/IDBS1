@@ -370,7 +370,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     int next = targetData->nextBlock;
     while(next != -1) {
       CALL_BF(BF_UnpinBlock(targetBlock));
-      CALL_BF(BF_GetBlock(indexDesc, next, targetBlock));
+      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, next, targetBlock));
       targetData = (DataBlock*) BF_Block_GetData(targetBlock);
       next = targetData->nextBlock;
     }    
@@ -386,7 +386,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
 
-      CALL_BF(BF_GetBlock(indexDesc, 0, targetBlock));
+      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, 0, targetBlock));
       StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
       statData->total_recs++;
       BF_Block_SetDirty(targetBlock);
@@ -420,7 +420,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_UnpinBlock(targetBlock));
       CALL_BF(BF_UnpinBlock(newBlock));
 
-      CALL_BF(BF_GetBlock(indexDesc, 0, targetBlock));
+      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, 0, targetBlock));
       StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
       statData->total_recs++;
       BF_Block_SetDirty(targetBlock);
@@ -445,7 +445,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
 
-      CALL_BF(BF_GetBlock(indexDesc, 0, targetBlock));
+      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, 0, targetBlock));
       StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
       statData->total_recs++;
       BF_Block_SetDirty(targetBlock);
@@ -480,7 +480,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_UnpinBlock(targetBlock));
       CALL_BF(BF_UnpinBlock(newBlock));
 
-      CALL_BF(BF_GetBlock(indexDesc, 0, targetBlock));
+      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, 0, targetBlock));
       StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
       statData->total_recs++;
       BF_Block_SetDirty(targetBlock);
@@ -503,7 +503,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       for (int i = 0; i < targetData->lastEmpty; i++){
         entryArray[i+1]=targetData->index[i];
       }
-      CALL_BF(BF_GetBlock(indexDesc, 0, targetBlock));
+      CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, 0, targetBlock));
       StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
       statData->total_buckets++;
       statData->total_recs -= entryAmount - 1;
@@ -614,15 +614,16 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
 
-    CALL_BF(BF_GetBlock(indexDesc, 0, targetBlock));
-    StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
-    int recordAmount = statData->total_recs;
-    CALL_BF(BF_UnpinBlock(targetBlock));
-    if (recordAmount == 0) return HT_OK;
-    int recordCount = 0;
-
     printf("%d\n",open_files[indexDesc].globalDepth);
+    int previous_bucket = -1;
+    int current_bucket = -1;
     for (int i=0;i<(1<<open_files[indexDesc].globalDepth);i++){
+      current_bucket = open_files[indexDesc].index[i];
+      if (current_bucket == previous_bucket) {
+        previous_bucket = current_bucket;
+        continue;
+      }
+      previous_bucket = current_bucket;
       CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[i],targetBlock));
       DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
@@ -652,7 +653,6 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
     CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
-    printf("ok\n");
     DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
     for (int i = 0; i < targetData->lastEmpty; i++){
