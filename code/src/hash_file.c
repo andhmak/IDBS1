@@ -292,8 +292,13 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
   int nextBlock;
   for (int j = 0 ; j < indexSize ; ) {
-    for (int k = 0 ; (k < INDEX_ARRAY_SIZE) && (j < indexSize); k++, j++) {
-      data->index[k] = open_files[indexDesc].index[j];
+    for (int k = 0 ; k < INDEX_ARRAY_SIZE; k++, j++) {
+      if (j < indexSize) {
+        data->index[k] = open_files[indexDesc].index[j];
+      }
+      else {
+        data->index[k] = -1;
+      }
     }
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
@@ -684,6 +689,8 @@ HT_ErrorCode HashStatistics(char* filename) {
     for (int j = 0 ; j < indexSize ; j++) {
       CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
       DataBlock* data = (DataBlock*) BF_Block_GetData(block);
+      printf("%dth position showing %d, bucket has %d\n", j, open_files[i].index[j], data->lastEmpty);
+      fflush(stdout);
       max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
       min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
       int nextBlock = data->nextBlock;
