@@ -10,7 +10,8 @@
 
 #define INDEX_ARRAY_SIZE ((BF_BLOCK_SIZE-sizeof(int))/sizeof(int))
 #define DATA_ARRAY_SIZE ((BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record))
-#define MAX_DEPTH 8*sizeof(int)
+#define MAX_DEPTH (8*sizeof(int)-12)
+#define SHIFT_CONST (8*sizeof(int)-1)
 
 #define CALL_BF(call)       \
 {                           \
@@ -355,7 +356,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   
   printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   
-  int hashID = (hash_func(record.id) >> (MAX_DEPTH - open_files[indexDesc].globalDepth -1));
+  int hashID = (hash_func(record.id) >> (SHIFT_CONST - open_files[indexDesc].globalDepth));
   printf("%d\n", hashID);
   BF_Block *targetBlock;
   BF_Block_Init(&targetBlock);
@@ -363,7 +364,17 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
   DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
+  printf("current level %d\n", open_files[indexDesc].globalDepth);
   if(targetData->nextBlock!=-1){ //overflow
+
+    int next = targetData->nextBlock;
+    while(next != -1) {
+      CALL_BF(BF_UnpinBlock(targetBlock));
+      CALL_BF(BF_GetBlock(indexDesc, next, targetBlock));
+      targetData = (DataBlock*) BF_Block_GetData(targetBlock);
+      next = targetData->nextBlock;
+    }    
+
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){ //last block has space
       //insert
       printf("1\n");
@@ -455,6 +466,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
       CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&(targetData->nextBlock)));
       targetData->nextBlock--;
+      printf("new overflow chain block at %d\n",targetData->nextBlock);
       newBlockData->localDepth = targetData->localDepth;
       newBlockData->index[0].id = record.id;
       strcpy(newBlockData->index[0].name,record.name);
@@ -507,7 +519,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
           newIndex[j]=open_files[indexDesc].index[i];
           newIndex[j+1]=open_files[indexDesc].index[i];
         }
-        
         //open_files[indexDesc].index[(2*hashID)+1] will have the same block as in the last index but it will be empty
         targetData->localDepth = open_files[indexDesc].globalDepth;
         targetData->lastEmpty = 0;
@@ -523,8 +534,10 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
         printf("new bucket pos %d\n", (2*hashID)+1);
+        printf("address in index %d\n",(2*hashID)+1);
         CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&newIndex[(2*hashID)+1]));
         newIndex[(2*hashID)+1]--;
+        printf("address inside file %d\n",newIndex[(2*hashID)+1]);
         newBlockData->localDepth = open_files[indexDesc].globalDepth;
         newBlockData->lastEmpty = 0;
         newBlockData->nextBlock = -1;
@@ -533,6 +546,7 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_UnpinBlock(newBlock));
         BF_Block_Destroy(&newBlock);
         BF_Block_Destroy(&targetBlock);
+        printf("ok\n");
 
         free(open_files[indexDesc].index);
         open_files[indexDesc].index=newIndex;
@@ -598,17 +612,24 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
     
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
+
+    CALL_BF(BF_GetBlock(indexDesc, 0, targetBlock));
+    StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
+    int recordAmount = statData->total_recs;
+    CALL_BF(BF_UnpinBlock(targetBlock));
+    if (recordAmount == 0) return HT_OK;
+    int recordCount = 0;
+
+    printf("%d\n",open_files[indexDesc].globalDepth);
     for (int i=0;i<(1<<open_files[indexDesc].globalDepth);i++){
       CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[i],targetBlock));
-      printf("(%d,%d)\n", i,  open_files[indexDesc].index[i]);
       DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
       for (int j = 0; j < targetData->lastEmpty; j++){
         printf("{%i,%s,%s,%s}\n", targetData->index[j].id, targetData->index[j].name, targetData->index[j].surname, targetData->index[j].city);
       }
-
+      
       int next = targetData->nextBlock;
-      printf("next is %d\n", next);
       while(next!=-1){
         CALL_BF(BF_UnpinBlock(targetBlock));  //(no SetDirty because we only read)
         CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,next,targetBlock));
@@ -625,10 +646,12 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
   else{
 
     printf("Printing entries with ID: %i\n", *id);
-    int hashID = (hash_func(*id)>>(MAX_DEPTH - open_files[indexDesc].globalDepth));
+    int hashID = (hash_func(*id)>>(SHIFT_CONST - open_files[indexDesc].globalDepth));
+    printf("global depth %d\n", open_files[indexDesc].globalDepth);
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
     CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
+    printf("ok\n");
     DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
     for (int i = 0; i < targetData->lastEmpty; i++){
@@ -689,7 +712,6 @@ HT_ErrorCode HashStatistics(char* filename) {
     for (int j = 0 ; j < indexSize ; j++) {
       CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
       DataBlock* data = (DataBlock*) BF_Block_GetData(block);
-      printf("%dth position showing %d, bucket has %d\n", j, open_files[i].index[j], data->lastEmpty);
       fflush(stdout);
       max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
       min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
@@ -739,7 +761,6 @@ HT_ErrorCode HashStatistics(char* filename) {
       for (int j = 0 ; (j < INDEX_ARRAY_SIZE) && (index->index[j] != -1); j++) {
         CALL_BF(BF_GetBlock(fd, index->index[j], block));
         DataBlock* data = (DataBlock*) BF_Block_GetData(block);
-        printf("%dth position showing %d, bucket has %d\n", j, index->index[j], data->lastEmpty);
         fflush(stdout);
         max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
         min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;

@@ -5,7 +5,7 @@
 #include "bf.h"
 #include "hash_file.h"
 
-#define RECORDS_NUM 512 // you can change it if you want
+#define RECORDS_NUM 128 // you can change it if you want
 #define GLOBAL_DEPT_1 2 // you can change it if you want
 #define GLOBAL_DEPT_2 8 // you can change it if you want
 #define FILE_NAME_1 "data1.db"
@@ -78,7 +78,7 @@ int main() {
   Record record;
   srand(12569874);
   int r;
-  printf("Insert Entries\n");
+  /*printf("Insert Entries\n");
   for (int id = 0; id < RECORDS_NUM; ++id) {
     // create a record
     record.id = id;
@@ -91,7 +91,7 @@ int main() {
 
     CALL_OR_DIE(HT_InsertEntry(indexDesc1, record));
   }
-
+  */
   printf("RUN PrintAllEntries with ID\n");
   int id = rand() % RECORDS_NUM;
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, &id));
@@ -103,7 +103,7 @@ int main() {
 
 
   printf("Insert Entries with same ID\n");
-/*  for (int id = 0; id < RECORDS_NUM; ++id) {
+  for (int id = 0; id < RECORDS_NUM; ++id) {
     // create a record
     record.id = 5;
     r = rand() % 12;
@@ -114,16 +114,16 @@ int main() {
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
     CALL_OR_DIE(HT_InsertEntry(indexDesc2, record));
-  }*/
+  }
 
   printf("RUN PrintAllEntries with ID\n");
   id = 5;
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, &id));
   printf("RUN PrintAllEntries without ID\n");
-//  CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, NULL));
+  CALL_OR_DIE(HT_PrintAllEntries(indexDesc2, NULL));
   printf("RUN HashStatistics\n");
   CALL_OR_DIE(HashStatistics(FILE_NAME_1));
-//  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
+  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
 
 
   CALL_OR_DIE(HT_CloseFile(indexDesc1));
@@ -131,6 +131,6 @@ int main() {
   CALL_OR_DIE(HT_CloseFile(indexDesc3));
   printf("RUN HashStatistics\n");
   CALL_OR_DIE(HashStatistics(FILE_NAME_1));
-//  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
+  CALL_OR_DIE(HashStatistics(FILE_NAME_2));
   BF_Close();
 }
