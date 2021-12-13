@@ -730,10 +730,10 @@ HT_ErrorCode HashStatistics(char* filename) {
       printf("new index block\n");
       fflush(stdout);
       for (int j = 0 ; (j < INDEX_ARRAY_SIZE) && (index->index[j] != -1); j++) {
-        printf("%dth position showing %d\n", j, index->index[j]);
-        fflush(stdout);
         CALL_BF(BF_GetBlock(fd, index->index[j], block));
         DataBlock* data = (DataBlock*) BF_Block_GetData(block);
+        printf("%dth position showing %d, bucket has %d\n", j, index->index[j], data->lastEmpty);
+        fflush(stdout);
         max_recs_per_bucket = (data->lastEmpty > max_recs_per_bucket) ? data->lastEmpty : max_recs_per_bucket;
         min_recs_per_bucket = (data->lastEmpty < min_recs_per_bucket) ? data->lastEmpty : min_recs_per_bucket;
         int nextBlock = data->nextBlock;
@@ -768,6 +768,7 @@ HT_ErrorCode HashStatistics(char* filename) {
   // Print the results
   printf("Bucket amount: %d\n", bucketAmount);
   printf("Record amount: %d\n", recordAmount);
+  printf("Block amount: %d\n", blockAmount);
   printf("Minimum records per bucket: %d\n", min_recs_per_bucket);
   printf("Average records per bucket: %d\n", average_recs_per_bucket);
   printf("Maximum records per bucket: %d\n", max_recs_per_bucket);
