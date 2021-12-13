@@ -342,7 +342,11 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   fflush(stdout);
 
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
+  printf("before free\n");
+  fflush(stdout);
   free(open_files[indexDesc].index);
+  printf("after free\n");
+  fflush(stdout);
   open_files[indexDesc].fileDesc = -1;
   strcpy(open_files[indexDesc].filename, "");
   printf("HT_Close ended OK\n");
