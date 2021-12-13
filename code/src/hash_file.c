@@ -10,7 +10,7 @@
 
 #define INDEX_ARRAY_SIZE ((BF_BLOCK_SIZE-sizeof(int))/sizeof(int))
 #define DATA_ARRAY_SIZE ((BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record))
-#define MAX_DEPTH (8*sizeof(int)-14)
+#define MAX_DEPTH (8*sizeof(int)-20)
 #define SHIFT_CONST (8*sizeof(int)-1)
 
 #define CALL_BF(call)       \
@@ -297,6 +297,8 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   for (int j = 0 ; j < indexSize ; ) {
     printf("Started updating new block\n");
     for (int k = 0 ; k < INDEX_ARRAY_SIZE; k++, j++) {
+      printf("k: %d, j: %d\n", k, j);
+      fflush(stdout);
       if (j < indexSize) {
         data->index[k] = open_files[indexDesc].index[j];
       }
@@ -308,7 +310,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
       if (j < indexSize - 1) {
-        printf("Creating new block in %d\n", blockAmount);
+//        printf("Creating new block in %d\n", blockAmount);
         fflush(stdout);
         data->nextBlock = blockAmount++;
         BF_Block_SetDirty(block);
@@ -318,7 +320,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
         data->nextBlock = -1;
       }
       else {
-        printf("This is the last block (we created it)\n");
+//        printf("This is the last block (we created it)\n");
         fflush(stdout);
         BF_Block_SetDirty(block);
         CALL_BF(BF_UnpinBlock(block));
@@ -328,7 +330,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
       BF_Block_SetDirty(block);
       CALL_BF(BF_UnpinBlock(block));
       if (j < indexSize - 1) {
-        printf("This is the last block (already there)\n");
+//        printf("This is the last block (already there)\n");
         fflush(stdout);
         CALL_BF(BF_GetBlock(fd, nextBlock, block));
         data = (IndexBlock*) BF_Block_GetData(block);
