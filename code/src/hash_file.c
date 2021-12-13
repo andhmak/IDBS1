@@ -310,7 +310,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
       if (j < indexSize - 1) {
-//        printf("Creating new block in %d\n", blockAmount);
+        printf("Creating new block in %d\n", blockAmount);
         fflush(stdout);
         data->nextBlock = blockAmount++;
         BF_Block_SetDirty(block);
@@ -320,7 +320,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
         data->nextBlock = -1;
       }
       else {
-//        printf("This is the last block (we created it)\n");
+        printf("This is the last block (we created it)\n");
         fflush(stdout);
         BF_Block_SetDirty(block);
         CALL_BF(BF_UnpinBlock(block));
@@ -330,7 +330,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
       BF_Block_SetDirty(block);
       CALL_BF(BF_UnpinBlock(block));
       if (j < indexSize - 1) {
-//        printf("This is the last block (already there)\n");
+        printf("This is the last block (already there)\n");
         fflush(stdout);
         CALL_BF(BF_GetBlock(fd, nextBlock, block));
         data = (IndexBlock*) BF_Block_GetData(block);
