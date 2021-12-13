@@ -102,7 +102,7 @@ int main() {
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, NULL));
 
 
-  printf("Insert Entries with same ID\n");
+  /*printf("Insert Entries with same ID\n");
   for (int id = 0; id < RECORDS_NUM; ++id) {
     // create a record
     record.id = 5;
@@ -114,7 +114,7 @@ int main() {
     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
     CALL_OR_DIE(HT_InsertEntry(indexDesc2, record));
-  }
+  }*/
 
   printf("RUN PrintAllEntries with ID\n");
   id = 5;

@@ -292,6 +292,8 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   int blockAmount;
   CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
   int nextBlock;
+  printf("indexSize: %d\n", indexSize);
+  fflush(stdout);
   for (int j = 0 ; j < indexSize ; ) {
     for (int k = 0 ; k < INDEX_ARRAY_SIZE; k++, j++) {
       if (j < indexSize) {
@@ -689,7 +691,7 @@ HT_ErrorCode HashStatistics(char* filename) {
   int blockAmount;
   int bucketAmount;
   int recordAmount;
-  int average_recs_per_bucket;
+  double average_recs_per_bucket;
   int max_recs_per_bucket = 0; 
   int min_recs_per_bucket = INT_MAX;
 
@@ -701,7 +703,7 @@ HT_ErrorCode HashStatistics(char* filename) {
     BF_Block_Init(&block);
     CALL_BF(BF_GetBlock(open_files[i].fileDesc, 0, block));
     StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
-    average_recs_per_bucket = stat->total_recs/stat->total_buckets;
+    average_recs_per_bucket = stat->total_recs/ (double) stat->total_buckets;
     bucketAmount = stat->total_buckets;
     recordAmount = stat->total_recs;
     CALL_BF(BF_UnpinBlock(block));
@@ -743,7 +745,7 @@ HT_ErrorCode HashStatistics(char* filename) {
     BF_Block_Init(&block);
     CALL_BF(BF_GetBlock(fd, 0, block));
     StatBlock* stat = (StatBlock*) BF_Block_GetData(block);
-    average_recs_per_bucket = stat->total_recs/stat->total_buckets;
+    average_recs_per_bucket = stat->total_recs/ (double) stat->total_buckets;
     bucketAmount = stat->total_buckets;
     recordAmount = stat->total_recs;
     
@@ -799,7 +801,7 @@ HT_ErrorCode HashStatistics(char* filename) {
   printf("Record amount: %d\n", recordAmount);
   printf("Block amount: %d\n", blockAmount);
   printf("Minimum records per bucket: %d\n", min_recs_per_bucket);
-  printf("Average records per bucket: %d\n", average_recs_per_bucket);
+  printf("Average records per bucket: %f\n", average_recs_per_bucket);
   printf("Maximum records per bucket: %d\n", max_recs_per_bucket);
 
   printf("HashStatistics ended OK\n");
