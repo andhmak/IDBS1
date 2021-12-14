@@ -521,9 +521,15 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       //making an array with all the entries of this block
       int entryAmount = 1+targetData->lastEmpty;
       Record *entryArray=malloc(entryAmount*sizeof(Record));  //1 for the new entry and all the entries of the block
-      entryArray[0] = record;
+      entryArray[0].id = record.id;
+      strcpy(entryArray[0].name,record.name);
+      strcpy(entryArray[0].surname,record.surname);
+      strcpy(entryArray[0].city,record.city);
       for (int i = 0; i < targetData->lastEmpty; i++){
-        entryArray[i+1]=targetData->index[i];
+        entryArray[i+1].id = targetData->index[i].id;
+        strcpy(entryArray[i+1].name,targetData->index[i].name);
+        strcpy(entryArray[i+1].surname,targetData->index[i].surname);
+        strcpy(entryArray[i+1].city,targetData->index[i].city);
       }
       CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, 0, targetBlock));
       StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
