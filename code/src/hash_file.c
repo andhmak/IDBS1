@@ -8,15 +8,15 @@
 #define MAX_OPEN_FILES 20
 #define NAME_BUF 100
 
-#define INDEX_ARRAY_SIZE ((BF_BLOCK_SIZE-sizeof(int))/sizeof(int))
-#define DATA_ARRAY_SIZE ((BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record))
-#define MAX_DEPTH (8*sizeof(int)-8)
+#define INDEX_ARRAY_SIZE ((BF_BLOCK_SIZE-sizeof(int))/sizeof(int))      // Amount of buckets per block of index
+#define DATA_ARRAY_SIZE ((BF_BLOCK_SIZE-3*sizeof(int))/sizeof(Record))  // Amount of records per bucket
+#define MAX_DEPTH (8*sizeof(int)-8) // Maximum global depth of the hash table
 #define SHIFT_CONST (8*sizeof(int))
 
 #define CALL_BF(call)       \
 {                           \
   BF_ErrorCode code = call; \
-  if (code != BF_OK) {         \
+  if (code != BF_OK) {      \
     BF_PrintError(code);    \
     return HT_ERROR;        \
   }                         \
@@ -29,17 +29,20 @@ int hash_func(int x) {
   return x;
 }
 
+// Statistical data to be stored in the first block of the file
 typedef struct StatBlock {
   int total_recs;
   int total_buckets;
   int globalDepth;
 } StatBlock;
 
+// Parts of the array to be stored in blocks in the disk
 typedef struct IndexBlock {
   int nextBlock;
   int index[INDEX_ARRAY_SIZE];
 } IndexBlock;
 
+// For blocks acting as buckets
 typedef struct DataBlock {
   int localDepth;
   int lastEmpty;
@@ -47,6 +50,7 @@ typedef struct DataBlock {
   Record index[DATA_ARRAY_SIZE];
 } DataBlock;
 
+// Data to be held in memory for each open file
 typedef struct OpenFileData {
   int mainPos;
   char filename[NAME_BUF];
@@ -55,6 +59,7 @@ typedef struct OpenFileData {
   int *index;
 } OpenFileData;
 
+// Array of open files in memory
 OpenFileData open_files[MAX_OPEN_FILES];
 
 HT_ErrorCode HT_Init() {
@@ -239,7 +244,7 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
     }
   }
 
-  // Else write new information to disk close it completely
+  // Else write index information to disk close it completely
   int fd = open_files[indexDesc].fileDesc;
   BF_Block* block;
   BF_Block_Init(&block);
@@ -640,7 +645,7 @@ HT_ErrorCode HashStatistics(char* filename) {
   // Check if file is open
   int i;
   for (i = 0 ; i < MAX_OPEN_FILES ; i++) {
-    if((strcmp(open_files[i].filename, filename) == 0) && (open_files[i].mainPos == -1)) {
+    if ((strcmp(open_files[i].filename, filename) == 0) && (open_files[i].mainPos == -1)) {
       break;
     }
   }
