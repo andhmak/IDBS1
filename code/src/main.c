@@ -102,19 +102,19 @@ int main() {
   CALL_OR_DIE(HT_PrintAllEntries(indexDesc1, NULL));
 
 
-  // printf("Insert Entries with same ID\n");
-  // for (int i = 0; i < 9; ++i) {
-  //   // create a record
-  //   record.id = 5;
-  //   r = rand() % 12;
-  //   memcpy(record.name, names[r], strlen(names[r]) + 1);
-  //   r = rand() % 12;
-  //   memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
-  //   r = rand() % 10;
-  //   memcpy(record.city, cities[r], strlen(cities[r]) + 1);
+   printf("Insert Entries with same ID\n");
+   for (int i = 0; i < 9; ++i) {
+     // create a record
+     record.id = 5;
+     r = rand() % 12;
+     memcpy(record.name, names[r], strlen(names[r]) + 1);
+     r = rand() % 12;
+     memcpy(record.surname, surnames[r], strlen(surnames[r]) + 1);
+     r = rand() % 10;
+     memcpy(record.city, cities[r], strlen(cities[r]) + 1);
 
-  //   CALL_OR_DIE(HT_InsertEntry(indexDesc2, record));
-  // }
+     CALL_OR_DIE(HT_InsertEntry(indexDesc2, record));
+   }
 
   printf("RUN PrintAllEntries with ID\n");
   id = 5;
