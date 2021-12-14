@@ -63,8 +63,6 @@ HT_ErrorCode HT_Init() {
     open_files[i].fileDesc = -1;
     strcpy(open_files[i].filename, "");
   }
-//  printf("HT_Init ended OK\n");
-//  fflush(stdout);
   return HT_OK;
 }
 
@@ -93,28 +91,20 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
   BF_Block_SetDirty(block);
   CALL_BF(BF_UnpinBlock(block));
 
-//  printf("HT_Create: Stat bucket created OK\n");
-//  fflush(stdout);
-
   // Initialise index blocks
   int indexBlockAmount = ((arraySize - 1) / INDEX_ARRAY_SIZE) + 1;
   for (int i = 0; i < indexBlockAmount; i++){
     CALL_BF(BF_AllocateBlock(fileDesc, block));
     IndexBlock* data = (IndexBlock*) BF_Block_GetData(block);
     if (i+1 < indexBlockAmount) {
-//      printf("%dth index block has next %d\n", i, i+2);
       data->nextBlock = i+2;
     }
     else {
-//      printf("%dth index block has next %d\n", i, -1);
       data->nextBlock = -1;
     }
     BF_Block_SetDirty(block);
     CALL_BF(BF_UnpinBlock(block));
   }
-
-//  printf("HT_Create: Index blocks initialised OK\n");
-//  fflush(stdout);
 
   // Initialise buckets
   for (int i = 0; i < arraySize; i++) {
@@ -126,9 +116,6 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     BF_Block_SetDirty(block);
     CALL_BF(BF_UnpinBlock(block));
   }
-
-//  printf("HT_Create: Buckets initialised OK\n");
-//  fflush(stdout);
 
   // Map index to buckets
   int dataBlockCounter = indexBlockAmount + 1;
@@ -148,21 +135,14 @@ HT_ErrorCode HT_CreateIndex(const char *filename, int depth) {
     CALL_BF(BF_UnpinBlock(block));
   }
 
-//  printf("HT_Create: Buckets mapped to index OK\n");
-//  fflush(stdout);
-
   BF_Block_Destroy(&block);
 
   // Close file
   CALL_BF(BF_CloseFile(fileDesc));
-//  printf("HT_Create ended OK\n");
-//  fflush(stdout);
   return HT_OK;
 }
 
 HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
-//  printf("HT_Open started OK\n");
-//  fflush(stdout);
   // Check for empty position in open files array
   int i;
   for (i = 0 ; i < MAX_OPEN_FILES ; i++) {
@@ -184,8 +164,6 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
       open_files[i].mainPos = j;
       open_files[i].fileDesc = open_files[j].fileDesc;
       open_files[i].index = open_files[j].index;
-//      printf("HT_Open ended OK\n");
-//      fflush(stdout);
       return HT_OK;
     }
   }
@@ -227,14 +205,10 @@ HT_ErrorCode HT_OpenIndex(const char *fileName, int *indexDesc){
     }
   } while (nextBlock != -1);
   BF_Block_Destroy(&block);
-//  printf("HT_Open ended OK\n");
-//  fflush(stdout);
   return HT_OK;
 }
 
 HT_ErrorCode HT_CloseFile(int indexDesc) {
-//  printf("HT_Close started OK\n");
-//  fflush(stdout);
   // Check if indexDesc valid
   if ((indexDesc < 0) || (indexDesc >= MAX_OPEN_FILES) || (open_files[indexDesc].fileDesc == -1)) {
     printf("Invalied indexDesc\n");
@@ -245,8 +219,6 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   if (open_files[indexDesc].mainPos != -1) {
     open_files[indexDesc].fileDesc = -1;
     strcpy(open_files[indexDesc].filename, "");
-//    printf("HT_Close was secondary and ended OK\n");
-//    fflush(stdout);
     return HT_OK;
   }
 
@@ -258,7 +230,6 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
       open_files[j].mainPos = -1;
       open_files[j].globalDepth = open_files[indexDesc].globalDepth;
       open_files[j].index = open_files[indexDesc].index;
-//      printf("HT_Close was main and ended OK\n");
       for (int k = 0 ; k < MAX_OPEN_FILES ; k++) {
         if((strcmp(open_files[j].filename, open_files[k].filename) == 0) && (k != j)) {
           open_files[k].mainPos = j;
@@ -288,13 +259,8 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
   int blockAmount;
   CALL_BF(BF_GetBlockCounter(fd, &blockAmount));
   int nextBlock;
-//  printf("indexSize: %d\n", indexSize);
-//  fflush(stdout);
   for (int j = 0 ; j < indexSize ; ) {
-//    printf("Started updating new block\n");
     for (int k = 0 ; k < INDEX_ARRAY_SIZE; k++, j++) {
-//      printf("k: %d, j: %d\n", k, j);
-//      fflush(stdout);
       if (j < indexSize) {
         data->index[k] = open_files[indexDesc].index[j];
       }
@@ -302,12 +268,9 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
         data->index[k] = -1;
       }
     }
-//    printf("Ended updating new block\n");
     nextBlock = data->nextBlock;
     if (nextBlock == -1) {
       if (j < indexSize - 1) {
-//        printf("Creating new block in %d\n", blockAmount);
-//        fflush(stdout);
         data->nextBlock = blockAmount++;
         BF_Block_SetDirty(block);
         CALL_BF(BF_UnpinBlock(block));
@@ -316,8 +279,6 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
         data->nextBlock = -1;
       }
       else {
-//        printf("This is the last block (we created it)\n");
-//        fflush(stdout);
         BF_Block_SetDirty(block);
         CALL_BF(BF_UnpinBlock(block));
       }
@@ -326,38 +287,19 @@ HT_ErrorCode HT_CloseFile(int indexDesc) {
       BF_Block_SetDirty(block);
       CALL_BF(BF_UnpinBlock(block));
       if (j < indexSize - 1) {
-//        printf("This is the last block (already there)\n");
-//        fflush(stdout);
         CALL_BF(BF_GetBlock(fd, nextBlock, block));
         data = (IndexBlock*) BF_Block_GetData(block);
       }
     }
   }
   BF_Block_Destroy(&block);
-//  printf("HT_Close memory moved to disk OK\n");
-  fflush(stdout);
 
   CALL_BF(BF_CloseFile(open_files[indexDesc].fileDesc));
   free(open_files[indexDesc].index);
   open_files[indexDesc].fileDesc = -1;
   strcpy(open_files[indexDesc].filename, "");
-//  printf("HT_Close ended OK\n");
-  fflush(stdout);
   return HT_OK;
 }
-
-//compares the ID value of first entry to all others
-//if all are the same returns true
-//else false
-/*int sameID(Record *records){
-  int hash=records[0].id;
-  for (int i=1;i<(sizeof(records)/sizeof(Record)); i++){
-    if (hash != records[i].id){
-      return 0;
-    }
-  }
-  return 1;
-}*/
 
 HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   // Check if indexDesc valid
@@ -371,11 +313,9 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     indexDesc = open_files[indexDesc].mainPos;
   }
 
-//  printf("Inserting {%i,%s,%s,%s}\n", record.id, record.name, record.surname, record.city);
   
   int hashID = ((hash_func(record.id) & INT_MAX) >> (SHIFT_CONST - open_files[indexDesc].globalDepth));
 
-//  printf("%d\n", hashID);
 
   BF_Block *targetBlock;
   BF_Block_Init(&targetBlock);
@@ -383,7 +323,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
   CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
   DataBlock *targetData = (DataBlock *)BF_Block_GetData(targetBlock);
 
-//  printf("current level %d\n", open_files[indexDesc].globalDepth);
   if(targetData->nextBlock!=-1){ //overflow
 
     int next = targetData->nextBlock;
@@ -396,7 +335,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){ //last block has space
       //insert
-//      printf("1\n");
       targetData->index[targetData->lastEmpty].id = record.id;
       strcpy(targetData->index[targetData->lastEmpty].name,record.name);
       strcpy(targetData->index[targetData->lastEmpty].surname,record.surname);
@@ -416,7 +354,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       return HT_OK;
     }
     else{
-//      printf("2\n");
       //make next block
       BF_Block *newBlock;
       BF_Block_Init(&newBlock);
@@ -442,7 +379,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, 0, targetBlock));
       StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
       statData->total_recs++;
-//      printf("increased bucket count\n");
       statData->total_buckets++;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
@@ -457,7 +393,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
     if (targetData->lastEmpty<DATA_ARRAY_SIZE){
       //insert
-//      printf("3\n");
       targetData->index[targetData->lastEmpty].id = record.id;
       strcpy(targetData->index[targetData->lastEmpty].name,record.name);
       strcpy(targetData->index[targetData->lastEmpty].surname,record.surname);
@@ -478,7 +413,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     }
     else if(targetData->localDepth==MAX_DEPTH){    //reached MAX depth
       //make next block
-//      printf("4\n");
       BF_Block *newBlock;
       BF_Block_Init(&newBlock);
       DataBlock *newBlockData;
@@ -487,7 +421,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
 
       CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&(targetData->nextBlock)));
       targetData->nextBlock--;
-//      printf("new overflow chain block at %d\n",targetData->nextBlock);
       newBlockData->localDepth = targetData->localDepth;
       newBlockData->index[0].id = record.id;
       strcpy(newBlockData->index[0].name,record.name);
@@ -515,9 +448,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
     }
     else{
       //split
-
-
-//      printf("5\n");
       //making an array with all the entries of this block
       int entryAmount = 1+targetData->lastEmpty;
       Record *entryArray=malloc(entryAmount*sizeof(Record));  //1 for the new entry and all the entries of the block
@@ -534,15 +464,12 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
       CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc, 0, targetBlock));
       StatBlock* statData = (StatBlock*) BF_Block_GetData(targetBlock);
       statData->total_buckets++;
-//      printf("increased bucket count\n");
       statData->total_recs -= entryAmount - 1;
       BF_Block_SetDirty(targetBlock);
       CALL_BF(BF_UnpinBlock(targetBlock));
 
       if(open_files[indexDesc].globalDepth==targetData->localDepth){
         open_files[indexDesc].globalDepth++;
-//        printf("new depth %d\n", open_files[indexDesc].globalDepth);
-//        fflush(stdout);
 
         int *newIndex = malloc((1<<open_files[indexDesc].globalDepth)*sizeof(int));
         for (int i=0,j=0;i<(1<<(open_files[indexDesc].globalDepth-1)) && j<(1<<(open_files[indexDesc].globalDepth));i++,j+=2){
@@ -563,11 +490,8 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_AllocateBlock(open_files[indexDesc].fileDesc,newBlock));
         newBlockData = (DataBlock *)BF_Block_GetData(newBlock);
 
-//        printf("new bucket pos %d\n", (2*hashID)+1);
-//        printf("address in index %d\n",(2*hashID)+1);
         CALL_BF(BF_GetBlockCounter(open_files[indexDesc].fileDesc,&newIndex[(2*hashID)+1]));
         newIndex[(2*hashID)+1]--;
-//        printf("address inside file %d\n",newIndex[(2*hashID)+1]);
         newBlockData->localDepth = open_files[indexDesc].globalDepth;
         newBlockData->lastEmpty = 0;
         newBlockData->nextBlock = -1;
@@ -576,7 +500,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         CALL_BF(BF_UnpinBlock(newBlock));
         BF_Block_Destroy(&newBlock);
         BF_Block_Destroy(&targetBlock);
-//        printf("ok\n");
 
         free(open_files[indexDesc].index);
         open_files[indexDesc].index=newIndex;
@@ -588,7 +511,6 @@ HT_ErrorCode HT_InsertEntry(int indexDesc, Record record) {
         return HT_OK; 
       }
       else if(open_files[indexDesc].globalDepth>targetData->localDepth){
-//        printf("6\n");
         int shift_amt = open_files[indexDesc].globalDepth - targetData->localDepth;
         int firstIDtoBlock=((hashID >> shift_amt) << shift_amt);
         
@@ -654,7 +576,6 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
 
-//    printf("%d\n",open_files[indexDesc].globalDepth);
     int previous_bucket = -1;
     int current_bucket = -1;
     for (int i=0;i<(1<<open_files[indexDesc].globalDepth);i++){
@@ -689,7 +610,6 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 
     printf("Printing entries with ID: %i\n", *id);
     int hashID = ((hash_func(*id) & INT_MAX )>>(SHIFT_CONST - open_files[indexDesc].globalDepth));
-//    printf("global depth %d\n", open_files[indexDesc].globalDepth);
     BF_Block *targetBlock;
     BF_Block_Init(&targetBlock);
     CALL_BF(BF_GetBlock(open_files[indexDesc].fileDesc,open_files[indexDesc].index[hashID],targetBlock));
@@ -717,8 +637,6 @@ HT_ErrorCode HT_PrintAllEntries(int indexDesc, int *id) {
 }
 
 HT_ErrorCode HashStatistics(char* filename) {
-//  printf("HashStatistics started OK\n");
-//  fflush(stdout);
   // Check if file is open
   int i;
   for (i = 0 ; i < MAX_OPEN_FILES ; i++) {
@@ -735,7 +653,6 @@ HT_ErrorCode HashStatistics(char* filename) {
 
   // If it is, scan it using the index in the memory
   if (i != MAX_OPEN_FILES) {
-//    printf("HashStatistics: file in memory\n");
     CALL_BF(BF_GetBlockCounter(open_files[i].fileDesc, &blockAmount));
     BF_Block* block;
     BF_Block_Init(&block);
@@ -746,8 +663,6 @@ HT_ErrorCode HashStatistics(char* filename) {
     recordAmount = stat->total_recs;
     CALL_BF(BF_UnpinBlock(block));
     int indexSize = 1 << open_files[i].globalDepth;
-//    printf("open_files[i].globalDepth: %d\n", open_files[i].globalDepth);
-//    printf("indexsize: %d\n", indexSize);
     for (int j = 0 ; j < indexSize ; j++) {
       CALL_BF(BF_GetBlock(open_files[i].fileDesc, open_files[i].index[j], block));
       DataBlock* data = (DataBlock*) BF_Block_GetData(block);
@@ -769,8 +684,6 @@ HT_ErrorCode HashStatistics(char* filename) {
 
   // Else, scan it using the index in the disk
   else {
-//    printf("HashStatistics: file not in memory\n");
-    fflush(stdout);
     // Open file
     int fd;
     CALL_BF(BF_OpenFile(filename, &fd));
@@ -791,8 +704,6 @@ HT_ErrorCode HashStatistics(char* filename) {
     IndexBlock* index = (IndexBlock*) BF_Block_GetData(indexBlock);
     int nextIndexBlock;
     do {
-//      printf("new index block\n");
-//      fflush(stdout);
       for (int j = 0 ; (j < INDEX_ARRAY_SIZE) && (index->index[j] != -1); j++) {
         CALL_BF(BF_GetBlock(fd, index->index[j], block));
         DataBlock* data = (DataBlock*) BF_Block_GetData(block);
@@ -809,17 +720,13 @@ HT_ErrorCode HashStatistics(char* filename) {
           CALL_BF(BF_UnpinBlock(block));
         }
       }
-//      printf("out of the loop\n");
-//      fflush(stdout);
       nextIndexBlock = index->nextBlock;
       CALL_BF(BF_UnpinBlock(indexBlock));
-//      printf("nextIndexBlock = %d\n", nextIndexBlock);
       if (nextIndexBlock != -1) {
         CALL_BF(BF_GetBlock(fd, nextIndexBlock, indexBlock));
         index = (IndexBlock*) BF_Block_GetData(indexBlock);
       }
     } while (nextIndexBlock != -1);
-//    printf("out of the general loop\n");
 
     BF_Block_Destroy(&indexBlock);
     BF_Block_Destroy(&block);
@@ -828,14 +735,9 @@ HT_ErrorCode HashStatistics(char* filename) {
   }
 
   // Print the results
-//  printf("Bucket amount: %d\n", bucketAmount);
-//  printf("Record amount: %d\n", recordAmount);
   printf("Block amount: %d\n", blockAmount);
   printf("Minimum records per bucket: %d\n", min_recs_per_bucket);
   printf("Average records per bucket: %f\n", average_recs_per_bucket);
   printf("Maximum records per bucket: %d\n", max_recs_per_bucket);
-
-//  printf("HashStatistics ended OK\n");
-  fflush(stdout);
   return HT_OK;
 }
