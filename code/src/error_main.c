@@ -5,7 +5,7 @@
 #include "bf.h"
 #include "hash_file.h"
 #define GLOBAL_DEPT_1 2 // you can change it if you want
-#define FILE_NAME_1 "data3.db"
+#define FILE_NAME_1 "data_3.db"
 #define MAX_OPEN_FILES 20
 
 const char* names[] = {
