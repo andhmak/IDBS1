@@ -65,7 +65,7 @@ OpenFileData open_files[MAX_OPEN_FILES];
 HT_ErrorCode HT_Init() {
   // Initialising open_files
   for (int i = 0 ; i < MAX_OPEN_FILES ; i++) {
-    open_files[i].fileDesc = -1;
+    open_files[i].fileDesc = -1;  // -1 means it's showing nowhere (like NULL for a pointer)
     strcpy(open_files[i].filename, "");
   }
   return HT_OK;
